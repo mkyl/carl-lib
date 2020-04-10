@@ -1,7 +1,8 @@
 #lang racket/base
 
 (module+ test
-  (require rackunit))
+    (require rackunit/text-ui
+        "test/lang.rkt"))
 
 ;; Notice
 ;; To install (from within the package directory):
@@ -13,9 +14,6 @@
 ;; To view documentation:
 ;;   $ raco docs <<name>>
 ;;
-;; For your convenience, we have included LICENSE-MIT and LICENSE-APACHE files.
-;; If you would prefer to use a different license, replace those files with the
-;; desired license.
 ;;
 ;; Some users like to add a `private/` directory, place auxiliary files there,
 ;; and require them in `main.rkt`.
@@ -26,13 +24,12 @@
 ;; Code here
 
 
-
 (module+ test
-  ;; Any code in this `test` submodule runs when this file is run using DrRacket
-  ;; or with `raco test`. The code here does not run when this file is
-  ;; required by another module.
+    ;; Any code in this `test` submodule runs when this file is run using DrRacket
+    ;; or with `raco test`. The code here does not run when this file is
+    ;; required by another module.
 
-  (check-equal? (+ 2 2) 4))
+    (run-tests lang-tests))
 
 (module+ main
   ;; (Optional) main submodule. Put code here if you need it to be executed when
