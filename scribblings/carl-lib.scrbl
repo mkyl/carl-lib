@@ -3,8 +3,8 @@
                     racket/base]]
 
 @title{carl-lib}
-@author{moe}
+@author{Moe Kayali}
 
 @defmodule[carl-lib]
 
-Package Description Here
+The Causal Relational Learning (CaRL) framework is a tool for causal inference over relational data.
