@@ -2,20 +2,26 @@
 
 (require rackunit
     db
+    graph
     "../lang/main.rkt")
 
 (define lang-tests
     (test-suite
      "CaRL Language Tests"
      (test-case
-        "Built AST for simple model"
+        "integration test for simple model and db"
         (let* ([lst (list 2 4 6 8)]
               [f (open-input-file "test/simple.carl")]
               [m (create-model f)]
               [sqlite (sqlite3-connect #:database 'memory)]
               [_ (populate-db sqlite)]
-              [edges (load-data m sqlite)])
-            (check = (length edges) 6)))))
+              [edges (load-data m sqlite)]
+              [g (directed-graph edges)]
+              [g_undir (undirected-graph edges)])
+            (check = (length (get-edges g)) 6)
+            (check = (length (get-vertices g)) 9)
+            ; graph should have 3 connected components (ignoring direction)
+            (check = (length (cc g_undir)) 3)))))
 
 (define (populate-db conn)
     (query-exec conn
