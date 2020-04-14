@@ -1,4 +1,5 @@
-#lang racket
+#lang racket/base
+
 (require "parser.rkt")
 
 (define (load-rules input-port)

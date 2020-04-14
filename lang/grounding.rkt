@@ -1,7 +1,8 @@
-#lang racket
+#lang racket/base
 
-(require db)
-(require "expander.rkt")
+(require racket/list
+	db
+	"expander.rkt")
 
 (define (load-data model dbc)
     (let* ([edges (map (λ (m) (fetch-edges m dbc)) model)]

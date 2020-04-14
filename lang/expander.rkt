@@ -1,4 +1,5 @@
-#lang racket
+#lang racket/base
+(require racket/list)
 
 (struct rule (head body) #:transparent)
 (provide (struct-out rule)) 

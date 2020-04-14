@@ -9,7 +9,7 @@
     (test-suite
      "CaRL Language Tests"
      (test-case
-        "integration test for simple model and db"
+        "integration test for simple model and db graph gen"
         (let* ([lst (list 2 4 6 8)]
               [f (open-input-file "test/simple.carl")]
               [m (create-model f)]
@@ -18,6 +18,7 @@
               [edges (load-data m sqlite)]
               [g (directed-graph edges)]
               [g_undir (undirected-graph edges)])
+            ; expect 6 edges, 9 vertices
             (check = (length (get-edges g)) 6)
             (check = (length (get-vertices g)) 9)
             ; graph should have 3 connected components (ignoring direction)
