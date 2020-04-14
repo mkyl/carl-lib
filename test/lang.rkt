@@ -5,6 +5,8 @@
     graph
     "../lang/main.rkt")
 
+(provide lang-tests)
+
 (define lang-tests
     (test-suite
      "CaRL Language Tests"
