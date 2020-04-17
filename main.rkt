@@ -1,5 +1,8 @@
 #lang racket/base
 
+(module+ main
+    (require carl-lib/lang))
+
 (module+ test
     (require rackunit/text-ui
         "test/lang.rkt"))
