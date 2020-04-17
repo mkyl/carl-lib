@@ -8,7 +8,9 @@
 
 @defmodule[carl-lib]
 
-The Causal Relational Learning (CaRL) framework is a tool for causal inference over relational data.
+The Causal Relational Learning (CaRL) framework is a tool for causal inference over relational data. 
+
+This is the reference implementation of the framework developed in the paper ``@hyperlink["https://arxiv.org/abs/2004.03644"]{Causal Relational Learning}.''
 
 @section{Language}
 
