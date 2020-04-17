@@ -3,7 +3,8 @@
 (require rackunit
     db
     graph
-    "../lang/main.rkt")
+    carl-lib/lang
+    carl-lib/ground)
 
 (provide lang-tests)
 
@@ -17,9 +18,8 @@
               [m (create-model f)]
               [sqlite (sqlite3-connect #:database 'memory)]
               [_ (populate-db sqlite)]
-              [edges (load-data m sqlite)]
-              [g (directed-graph edges)]
-              [g_undir (undirected-graph edges)])
+              [g (ground m sqlite)]
+              [g_undir (undirected-graph (get-edges g))])
             ; expect 6 edges, 9 vertices
             (check = (length (get-edges g)) 6)
             (check = (length (get-vertices g)) 9)
