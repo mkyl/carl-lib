@@ -22,6 +22,9 @@ The Causal Relational Learning (CaRL) framework is a tool for causal inference o
 
 @section{Embedding}
 
+@defmodule[carl-lib/embed]
+@include-extracted[carl-lib/embed]
+
 @section{Covariate Detection}
 
 @section{Unit Table Construction}
