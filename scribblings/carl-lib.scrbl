@@ -29,6 +29,15 @@ This is the reference implementation of the framework developed in the paper ``@
 
 @section{Covariate Detection}
 
+@defmodule[carl-lib/detect]
+@include-extracted[carl-lib/detect]
+
 @section{Unit Table Construction}
 
+@defmodule[carl-lib/unit-table]
+@include-extracted[carl-lib/unit-table]
+
 @section{Estimation}
+
+@defmodule[carl-lib/estimate]
+@include-extracted[carl-lib/estimate]
