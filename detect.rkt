@@ -2,10 +2,12 @@
 
 (require racket/contract
 		 scribble/srcdoc
-		 (for-doc racket/base scribble/manual))
+		 (for-doc racket/base scribble/manual)
+		 graph)
 
-(provide (proc-doc/names foo (number? . -> . number?) (x) 
-	("Placeholder")))
+(provide (proc-doc/names detect ((and/c graph? unweighted-graph?)
+                                 . -> . list?) (x) 
+	("Return a set of sufficient covariates for adjustment.")))
 
-(define foo
+(define detect
 	(raise 'failed #t))
