@@ -10,5 +10,5 @@
 	((and/c graph? unweighted-graph?) list? . -> . matrix?) (augmented-gcm Z) 
 	("Construct a unit table given an augmented GCM and a set of covariates.")))
 
-(define construct
-	(raise 'failed #t))
+(define (construct augmented-gcm Z)
+	(matrix [[0]]))

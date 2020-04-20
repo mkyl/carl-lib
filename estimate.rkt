@@ -8,5 +8,5 @@
 (provide (proc-doc/names estimate (matrix? . -> . real?) (unit-table) 
 	("Estimate the average treatment effect (ATE) given a unit table.")))
 
-(define estimate
-	(raise 'failed #t))
+(define (estimate unit-table)
+	0)

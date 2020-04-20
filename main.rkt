@@ -20,11 +20,23 @@
   ;; does not run when this file is required by another module. Documentation:
   ;; http://docs.racket-lang.org/guide/Module_Syntax.html#%28part._main-and-test%29
 
-  (require racket/cmdline)
-  (define who (box "world"))
+  (require racket/cmdline
+           carl-lib/lang
+           carl-lib/ground
+           carl-lib/embed
+           carl-lib/detect
+           carl-lib/unit-table
+           carl-lib/estimate)
+  (define (run filename db) (let* 
+    ([f (open-input-file filename)]
+     [model (create-model f)]
+     [gcm (ground model db)]
+     [aug-gcm (embed gcm)]
+     [Z (detect aug-gcm)]
+     [table (construct aug-gcm Z)]
+     [ate (estimate table)]) 
+    ate))
   (command-line
-    #:program "my-program"
-    #:once-each
-    [("-n" "--name") name "Who to say hello to" (set-box! who name)]
-    #:args ()
-    (printf "hello ~a~n" (unbox who))))
+    #:program "CaRL"
+    #:args (filename db)
+    (print (run filename db))))

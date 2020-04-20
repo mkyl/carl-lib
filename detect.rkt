@@ -3,11 +3,12 @@
 (require racket/contract
 		 scribble/srcdoc
 		 (for-doc racket/base scribble/manual)
-		 graph)
+		 graph
+		 racket/list)
 
 (provide (proc-doc/names detect ((and/c graph? unweighted-graph?)
-                                 . -> . list?) (x) 
+                                 . -> . list?) (aug-gcm) 
 	("Return a set of sufficient covariates for adjustment.")))
 
-(define detect
-	(raise 'failed #t))
+(define (detect aug-gcm)
+	empty)
