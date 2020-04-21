@@ -5,14 +5,35 @@
 
 (module+ test
     (require rackunit/text-ui
-        "test/lang.rkt"))
+        rackunit
+        "test/lang.rkt"
+        "test/integration.rkt"))
 
 (module+ test
     ;; Any code in this `test` submodule runs when this file is run using DrRacket
     ;; or with `raco test`. The code here does not run when this file is
     ;; required by another module.
+    (define all-tests (test-suite
+        "All of CaRL's tests"
+        lang-tests
+        integration-tests))
+    (run-tests all-tests))
 
-    (run-tests lang-tests))
+(require carl-lib/lang
+         carl-lib/ground
+         carl-lib/embed
+         carl-lib/detect
+         carl-lib/unit-table
+         carl-lib/estimate)
+(provide compute)
+(define (compute f db) (let* 
+  ([model (create-model f)]
+   [gcm (ground model db)]
+   [aug-gcm (embed gcm)]
+   [Z (detect aug-gcm)]
+   [table (construct aug-gcm Z)]
+   [ate (estimate table)]) 
+  ate))
 
 (module+ main
   ;; (Optional) main submodule. Put code here if you need it to be executed when
@@ -21,21 +42,17 @@
   ;; http://docs.racket-lang.org/guide/Module_Syntax.html#%28part._main-and-test%29
 
   (require racket/cmdline
+           db
            carl-lib/lang
            carl-lib/ground
            carl-lib/embed
            carl-lib/detect
            carl-lib/unit-table
            carl-lib/estimate)
-  (define (run filename db) (let* 
-    ([f (open-input-file filename)]
-     [model (create-model f)]
-     [gcm (ground model db)]
-     [aug-gcm (embed gcm)]
-     [Z (detect aug-gcm)]
-     [table (construct aug-gcm Z)]
-     [ate (estimate table)]) 
-    ate))
+  (define (run filename db-location)
+    (let* ([f (open-input-file filename)]
+           [db (sqlite3-connect #:database db-location)])
+          (compute f db)))
   (command-line
     #:program "CaRL"
     #:args (filename db)
