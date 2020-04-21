@@ -14,6 +14,7 @@
         "end-to-end test with simple model and synthetic data"
         (let* ([model (open-input-file "test/simple.carl")]
                [sqlite (sqlite3-connect #:database 'memory)]
+               [_ (populate-db sqlite)]
                [ate (compute model sqlite)])
             ; ATE from db below
             (check = (ate 0.6))))))
