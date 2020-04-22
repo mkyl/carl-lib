@@ -4,6 +4,8 @@ carl-lib
 
 Causal Relational Learning library, implementation of the [corresponding paper](https://arxiv.org/abs/2004.03644).
 
+**This software is currently in pre-alpha.**
+
 Collection structure is as follows:
 
 ```
