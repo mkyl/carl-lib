@@ -23,7 +23,17 @@
             (check = (length (get-edges g)) 6)
             (check = (length (get-vertices g)) 9)
             ; graph should have 3 connected components (ignoring direction)
-            (check = (length (cc g_undir)) 3)))))
+            (check = (length (cc g_undir)) 3)))
+     (test-case
+        "Correct number of rules and queries"
+        (let* ([f (open-input-file "test/simple.carl")]
+               [m (create-model f)])
+            ; three total
+            (check = (length m) 3)
+            ; one query
+            (check = (length (filter ques? m)) 1)
+            ; two rules
+            (check = (length (filter rule? m)) 2)))))
 
 (define (populate-db conn)
     (query-exec conn

@@ -2,11 +2,11 @@
 (require racket/list)
 
 (struct rule (head body) #:transparent)
-(struct query (outcome treatment) #:transparent)
+(struct ques (outcome treatment) #:transparent)
 (struct model (rules queries) #:transparent)
 (struct table (name) #:transparent)
 (provide (struct-out rule)
-         (struct-out query)
+         (struct-out ques)
          (struct-out model)
          (struct-out table))
 
@@ -33,4 +33,4 @@
     (let* ([cleaned (cleanup (rest q))]
            [outcome (first cleaned)]
            [treatment (first (rest cleaned))])
-        (query outcome treatment)))
+        (ques outcome treatment)))
