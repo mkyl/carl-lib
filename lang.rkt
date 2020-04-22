@@ -7,9 +7,9 @@
          "lang/expander.rkt")
 
 (provide (proc-doc/names
-		  create-model (input-port? . -> . (listof rule?)) (port) 
+		  create-model (input-port? . -> . (listof (or/c rule? query?))) (port) 
 		  ("Read a file in the CaRL language and output the set of 
-		  	rules it contains."))
+		  	rules and queries it contains."))
 		 (struct-out rule))
 
 (define (create-model port)

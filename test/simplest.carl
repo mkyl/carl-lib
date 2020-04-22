@@ -1,3 +1,2 @@
 score[X] <- experience[X]
 score[X] <- luck[X]
-score[X] <- experience[X]?

@@ -12,9 +12,8 @@
     (test-suite
      "CaRL Language Tests"
      (test-case
-        "integration test for simple model and db graph gen"
-        (let* ([lst (list 2 4 6 8)]
-              [f (open-input-file "test/simple.carl")]
+        "GCM generation for simplest model"
+        (let* ([f (open-input-file "test/simplest.carl")]
               [m (create-model f)]
               [sqlite (sqlite3-connect #:database 'memory)]
               [_ (populate-db sqlite)]

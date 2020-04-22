@@ -16,4 +16,5 @@
         ["[" (token 'LEFT-BRACKET lexeme)]
         ["]" (token 'RIGHT-BRACKET lexeme)]
         ["<-" (token 'CAUSES lexeme)]
+        ["?" (token 'QUESTION-MARK lexeme)]
         [(repetition 1 +inf.0 (union alphabetic "_")) (token 'ID lexeme)]))

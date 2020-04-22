@@ -2,25 +2,35 @@
 (require racket/list)
 
 (struct rule (head body) #:transparent)
-(provide (struct-out rule)) 
+(struct query (outcome treatment) #:transparent)
+(struct model (rules queries) #:transparent)
+(struct table (name) #:transparent)
+(provide (struct-out rule)
+         (struct-out query)
+         (struct-out model)
+         (struct-out table))
 
 (define (handle-model m)
     (let* ([datum (syntax->datum m)]
-           [rules (handle-rule datum)])
-        rules))
+           [result (cleanup datum)])
+        result))
 (provide handle-model)
 
+(define (cleanup m)
+    (cond [(and (list? m) (equal? (first m) 'table)) (table (first (rest m)))]
+          [(and (list? m) (equal? (first m) 'rule)) (handle-rule m)]
+          [(and (list? m) (equal? (first m) 'query)) (handle-query m)]
+          [(list? m) (flatten (filter-map cleanup m))]
+          [else #f]))
+
 (define (handle-rule r)
-    (let* ([result 
-        (cond
-        [(and (list? r) (eq? 'rule (first r))) (
-            let* ([r (rest r)]
-                [head (handle-rule (first r))]
-                [body (handle-rule (first (rest (rest r))))])
-                (rule head body))]
-        [(and (list? r) (eq? 'table (first r))) r]
-        [(and (list? r) (eq? 'variable (first r))) r]
-        [(list? r) (map handle-rule r)]
-        [else '()])]
-        [result (flatten result)])
-      result))
+    (let* ([cleaned (cleanup (rest r))]
+           [head (first cleaned)]
+           [body (first (rest cleaned))])
+        (rule head body)))
+
+(define (handle-query q)
+    (let* ([cleaned (cleanup (rest q))]
+           [outcome (first cleaned)]
+           [treatment (first (rest cleaned))])
+        (query outcome treatment)))
