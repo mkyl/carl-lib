@@ -12,7 +12,10 @@
 
 (define (handle-model m)
     (let* ([datum (syntax->datum m)]
-           [result (cleanup datum)])
+           [xs (cleanup datum)]
+           [rs (filter rule? xs)]
+           [qs (filter ques? xs)]
+           [result (model rs qs)])
         result))
 (provide handle-model)
 

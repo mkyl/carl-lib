@@ -28,7 +28,7 @@
 (provide compute)
 (define (compute f db) (let* 
   ([model (create-model f)]
-   [gcm (ground model db)]
+   [gcm (ground (model-rules model) db)]
    [aug-gcm (embed gcm)]
    [Z (detect aug-gcm)]
    [table (construct aug-gcm Z)]
