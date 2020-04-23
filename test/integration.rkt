@@ -17,7 +17,7 @@
                [_ (populate-db sqlite)]
                [ate (compute model sqlite)])
             ; ATE from db below
-            (check = ate 0.6)))))
+            (check = ate 0.5)))))
 
 (provide integration-tests)
 
