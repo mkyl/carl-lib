@@ -9,5 +9,6 @@
 	. -> . (and/c graph? unweighted-graph?)) (gcm) 
 	("Apply embeddings to a ground causal model (GCM) to create the augmented GCM.")))
 
+; TODO embedding is no-op at the moment
 (define (embed gcm) 
-	(raise 'failed #t))
+	gcm)

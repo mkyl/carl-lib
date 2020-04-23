@@ -24,14 +24,16 @@
          carl-lib/embed
          carl-lib/detect
          carl-lib/unit-table
-         carl-lib/estimate)
+         carl-lib/estimate
+         racket/list)
 (provide compute)
 (define (compute f db) (let* 
-  ([model (create-model f)]
-   [gcm (ground (model-rules model) db)]
+  ([m (create-model f)]
+   [gcm (ground (model-rules m) db)]
    [aug-gcm (embed gcm)]
    [Z (detect aug-gcm)]
-   [table (construct aug-gcm Z)]
+   ; TODO enable support for more than 1 query
+   [table (construct aug-gcm (first (model-queries m)) Z)]
    [ate (estimate table)]) 
   ate))
 

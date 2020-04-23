@@ -11,7 +11,7 @@
 		  ("Read a file in the CaRL language and output the set of 
 		  	rules and queries it contains."))
 		 (struct-out rule)
-         (struct-out ques)
+         (struct-out causal-q)
          (struct-out model)
          (struct-out table))
 

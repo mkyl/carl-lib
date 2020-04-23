@@ -2,11 +2,11 @@
 (require racket/list)
 
 (struct rule (head body) #:transparent)
-(struct ques (outcome treatment) #:transparent)
+(struct causal-q (outcome treatment) #:transparent)
 (struct model (rules queries) #:transparent)
 (struct table (name) #:transparent)
 (provide (struct-out rule)
-         (struct-out ques)
+         (struct-out causal-q)
          (struct-out model)
          (struct-out table))
 
@@ -14,7 +14,7 @@
     (let* ([datum (syntax->datum m)]
            [xs (cleanup datum)]
            [rs (filter rule? xs)]
-           [qs (filter ques? xs)]
+           [qs (filter causal-q? xs)]
            [result (model rs qs)])
         result))
 (provide handle-model)
@@ -36,4 +36,4 @@
     (let* ([cleaned (cleanup (rest q))]
            [outcome (first cleaned)]
            [treatment (first (rest cleaned))])
-        (ques outcome treatment)))
+        (causal-q outcome treatment)))
