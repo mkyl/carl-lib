@@ -22,8 +22,8 @@
             (check = ate 0.5)))
      (test-case
         "ATE of simplest confounding model"
-        (let* ([target-ate 0.75]
-               [ε 0.1]
+        (let* ([target-ate 0.25]
+               [ε 0.05]
                [model (open-input-file "test/confounding.carl")]
                [sqlite (sqlite3-connect #:database 'memory)]
                [_ (populate-confounding sqlite target-ate)]
@@ -51,12 +51,12 @@
 ; populate a database instance with 3 tables--T, Y, Q--where Q is a confounder
 ; of T and Y.
 (define (populate-confounding conn ate)
-    (let* ([n 500]
+    (let* ([n 1000]
            [units (stream->list (in-range n))]
            [Q (map (lambda (_) (random 2)) units)]
-           ; TODO replace T and Y stubs
-           [T (map (lambda (x) (random 2)) Q)]
-           [Y (map (lambda (x y) (random 2)) T Q)])
+           ; TODO take ate var into account
+           [T (map (lambda (x) (if (> (+ 0.25 (* 0.25 x)) (random)) 1 0)) Q)]
+           [Y (map (lambda (x y) (if (> (/ (+ x y) 2) (random)) 1 0)) T Q)])
         (for ([(name content) (in-parallel (list "T" "Y" "Q") (list T Y Q))])
             (query-exec conn (string-append-immutable 
                 "create table " name
