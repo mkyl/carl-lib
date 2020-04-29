@@ -1,7 +1,9 @@
-#lang racket/base
+#lang errortrace racket/base
 
 (require rackunit
 	racket/lazy-require
+    racket/stream
+    racket/list
 	db)
 
 ; lazy-require used to avoid cycle between main.rkt <-> integration.rkt
@@ -17,7 +19,16 @@
                [_ (populate-db sqlite)]
                [ate (compute model sqlite)])
             ; ATE from db below
-            (check = ate 0.5)))))
+            (check = ate 0.5)))
+     (test-case
+        "ATE of simplest confounding model"
+        (let* ([target-ate 0.75]
+               [ε 0.1]
+               [model (open-input-file "test/confounding.carl")]
+               [sqlite (sqlite3-connect #:database 'memory)]
+               [_ (populate-confounding sqlite target-ate)]
+               [ate (compute model sqlite)])
+            (check-= target-ate ate ε)))))
 
 (provide integration-tests)
 
@@ -36,3 +47,23 @@
     "insert into experience values ('eve', 0), ('alice', 0), ('bob', 1)")
     (query-exec conn
     "insert into luck values ('eve', 1), ('alice', 0), ('bob', 0)"))
+
+; populate a database instance with 3 tables--T, Y, Q--where Q is a confounder
+; of T and Y.
+(define (populate-confounding conn ate)
+    (let* ([n 500]
+           [units (stream->list (in-range n))]
+           [Q (map (lambda (_) (random 2)) units)]
+           ; TODO replace T and Y stubs
+           [T (map (lambda (x) (random 2)) Q)]
+           [Y (map (lambda (x y) (random 2)) T Q)])
+        (for ([(name content) (in-parallel (list "T" "Y" "Q") (list T Y Q))])
+            (query-exec conn (string-append-immutable 
+                "create table " name
+                " (key string PRIMARY KEY, value integer)"))
+            (for ([(k v) (in-parallel units content)])
+                (query-exec conn 
+                    (string-append-immutable "INSERT into " name
+                     " values (?, ?)")
+                    k v)))))
+    
