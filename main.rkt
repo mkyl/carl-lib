@@ -31,7 +31,7 @@
   ([m (create-model f)]
    [gcm (ground (model-rules m) db)]
    [aug-gcm (embed gcm)]
-   [Z (detect aug-gcm)]
+   [Z (detect (model-rules m))]
    ; TODO enable support for more than 1 query
    [table (construct aug-gcm (first (model-queries m)) Z)]
    [ate (estimate table)]) 
