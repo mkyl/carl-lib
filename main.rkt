@@ -15,7 +15,7 @@
     ;; or with `raco test`. The code here does not run when this file is
     ;; required by another module.
     (define all-tests (test-suite
-        "All of CaRL's tests"
+        "All tests"
         lang-tests
         detect-tests
         integration-tests))

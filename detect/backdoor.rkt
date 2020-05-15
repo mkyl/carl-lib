@@ -38,10 +38,13 @@
     (let* ([e (get-edges G)]
            ; remove edges that leave T (leaving only "backdoor" paths)
            [e_ (filter (λ (x) (not (equal? (car x) T))) e)]
-           [e_^2 (cartesian-product e_ e_)]
+           [e_^2 (combinations e_ 2)]
+           [_ (displayln e_^2)]
+           [_ (displayln "yo yo")]
            [op (filter (λ (x) (path-open (car x) (second x) Z)) e_^2)]
            [ps (map (λ (x) (link-edges (car x) (second x))) op)]
            [g_b (unweighted-graph/undirected ps)]
+           [_ (displayln ps)]
            ; ensure that T and Y are always in the graph
            [_ (add-vertex! g_b T)]
            [_ (add-vertex! g_b Y)]
@@ -63,6 +66,7 @@
             [(and (equal? a c) (not (equal? b d))) (not (in? a Z))]
             ; chain
             [(and (equal? b c) (not (equal? a d))) (not (in? b Z))]
+            [(and (equal? a d) (not (equal? b c))) (not (in? a Z))]
             ; collider
             [(and (equal? b d) (not (equal? a c))) (in? b Z)]
             ; all others
@@ -72,7 +76,16 @@
     (not (equal? (member m list) #f)))
 
 (define (link-edges e1 e2)
-    (list (car e1) (second e2)))
+    (let ([a (car e1)]
+          [b (second e1)]
+          [c (car e2)]
+          [d (second e2)])
+          (cond 
+            [(equal? a c) (list b d)]
+            [(equal? b d) (list a c)]
+            [(equal? b c) (list a d)]
+            [(equal? a d) (list b c)]
+            [else (error "not possible")])))
 
 (provide detect
     backdoor-criterion)
