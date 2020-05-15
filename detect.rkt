@@ -8,6 +8,7 @@
 		 carl-lib/lang
 		 "detect/backdoor.rkt")
 
-(provide (proc-doc/names detect ((listof rule?)
-                                 . -> . (or/c list? #f)) (model) 
-	("Return a minimal set of sufficient covariates for adjustment. #f if no such set found.")))
+(provide (proc-doc/names detect ((listof rule?) any/c any/c
+                                 . -> . (or/c list? #f)) (model T Y) 
+	("Return a minimal set of sufficient covariates for adjustment of T on Y.
+	 #f if no such set found.")))
