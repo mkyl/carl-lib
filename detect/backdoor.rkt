@@ -1,9 +1,10 @@
-#lang racket/base
+#lang errortrace racket/base
 
 (require racket/list
         racket/sequence
+        racket/set
         carl-lib/lang
-         graph)
+        graph)
 
 (define (detect model t y)
     (let* ([g (rules-to-dag model)]
@@ -38,16 +39,13 @@
     (let* ([e (get-edges G)]
            ; remove edges that leave T (leaving only "backdoor" paths)
            [e_ (filter (λ (x) (not (equal? (car x) T))) e)]
-           [e_^2 (combinations e_ 2)]
-           [_ (displayln e_^2)]
-           [_ (displayln "yo yo")]
-           [op (filter (λ (x) (path-open (car x) (second x) Z)) e_^2)]
-           [ps (map (λ (x) (link-edges (car x) (second x))) op)]
-           [g_b (unweighted-graph/undirected ps)]
-           [_ (displayln ps)]
-           ; ensure that T and Y are always in the graph
-           [_ (add-vertex! g_b T)]
-           [_ (add-vertex! g_b Y)]
+           [e_^2 (map list->set (combinations e_ 2))]
+           ; open paths
+           [op (filter (λ (x) (path-open (set-first x) (set-first (set-rest x)) Z)) e_^2)]
+           ; drop the directions on the edges
+           [op_un (map (λ (e) (set-map e list->set)) op)]
+           ; build a graph of paths
+           [g_b (path-graph op_un T Y)]
            ; try to find a path between T and Y
            [r (fewest-vertices-path g_b T Y)]
            ; if no such path, backdoor criterion is satisfied
@@ -75,16 +73,29 @@
 (define (in? m list)
     (not (equal? (member m list) #f)))
 
+(define (path-graph edge-pairs T Y) 
+    (let* ([g (unweighted-graph/undirected empty)]
+           [_ (map (λ (x) (add-edge! g (set-first x) (set-first (set-rest x)))) edge-pairs)]
+           [v_Y (filter (λ (v) (set-member? (set-map v (λ (x) (equal? x Y))) #t))
+                 (get-vertices g))]
+           [v_T (filter (λ (v) (set-member? (set-map v (λ (x) (equal? x T))) #t))
+                 (get-vertices g))])
+           (map (λ (v) (add-edge! g v Y)) v_Y)
+           (map (λ (v) (add-edge! g v T)) v_T)
+           (add-vertex! g T)
+           (add-vertex! g Y)
+            g))
+
 (define (link-edges e1 e2)
     (let ([a (car e1)]
           [b (second e1)]
           [c (car e2)]
           [d (second e2)])
           (cond 
-            [(equal? a c) (list b d)]
-            [(equal? b d) (list a c)]
-            [(equal? b c) (list a d)]
-            [(equal? a d) (list b c)]
+            [(equal? a c) (list (list b a) (list c d))]
+            [(equal? b d) (list (list a b) (list d c))]
+            [(equal? b c) (list (list a b) (list c d))]
+            [(equal? a d) (list (list b a) (list d c))]
             [else (error "not possible")])))
 
 (provide detect
