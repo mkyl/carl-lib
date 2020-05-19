@@ -16,7 +16,7 @@
 ; convert the set of rules to a DAG, so that graphical
 ; criterions can be applied to it
 (define (rules-to-dag model)
-    (let* ([rule-to-edge (λ (r) (list (rule-head r) (rule-body r)))]
+    (let* ([rule-to-edge (λ (r) (list (rule-body r) (rule-head r)))]
            [edges (map rule-to-edge model)])
         (unweighted-graph/directed edges)))
 
@@ -36,6 +36,7 @@
 ; the backdoor criterion on the graph G, given treatment
 ; T and outcome Y. This is sufficient but not neccesary for adjustment.
 (define (backdoor-criterion G T Y Z)
+    (if (or (in? Y Z) (in? T Z)) #f
     (let* ([e (get-edges G)]
            ; remove edges that leave T (leaving only "backdoor" paths)
            [e_ (filter (λ (x) (not (equal? (car x) T))) e)]
@@ -50,7 +51,7 @@
            [r (fewest-vertices-path g_b T Y)]
            ; if no such path, backdoor criterion is satisfied
            [conn (equal? r #f)])
-        conn))
+        conn)))
 
 ; Determines whether a 3-vertex causal path is open. 
 ; (as opposed to blocked or d-seperated)
@@ -91,7 +92,7 @@
           [b (second e1)]
           [c (car e2)]
           [d (second e2)])
-          (cond 
+          (cond
             [(equal? a c) (list (list b a) (list c d))]
             [(equal? b d) (list (list a b) (list d c))]
             [(equal? b c) (list (list a b) (list c d))]
