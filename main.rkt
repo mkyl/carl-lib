@@ -7,6 +7,7 @@
     (require rackunit/text-ui
         rackunit
         "test/lang.rkt"
+        "test/detect.rkt"
         "test/integration.rkt"))
 
 (module+ test
@@ -14,8 +15,9 @@
     ;; or with `raco test`. The code here does not run when this file is
     ;; required by another module.
     (define all-tests (test-suite
-        "All of CaRL's tests"
+        "All tests"
         lang-tests
+        detect-tests
         integration-tests))
     (run-tests all-tests))
 
@@ -31,7 +33,9 @@
   ([m (create-model f)]
    [gcm (ground (model-rules m) db)]
    [aug-gcm (embed gcm)]
-   [Z (detect aug-gcm)]
+   [T (causal-q-treatment (first (model-queries m)))]
+   [Y (causal-q-outcome (first (model-queries m)))]
+   [Z (detect (model-rules m) T Y)]
    ; TODO enable support for more than 1 query
    [table (construct aug-gcm (first (model-queries m)) Z)]
    [ate (estimate table)]) 
