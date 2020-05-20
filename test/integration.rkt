@@ -58,12 +58,12 @@
            [T (map (lambda (q) (if (> (+ 0.25 (* 0.5 q)) (random)) 1 0)) Q)]
            [Y (map (lambda (t q) (if (> (+ (* 0.5 q) (* ate t)) (random)) 1 0)) T Q)])
         (for ([(name content) (in-parallel (list "T" "Y" "Q") (list T Y Q))])
-            (query-exec conn (string-append-immutable 
+            (query-exec conn (string-append 
                 "create table " name
                 " (key string PRIMARY KEY, value integer)"))
             (for ([(k v) (in-parallel units content)])
                 (query-exec conn 
-                    (string-append-immutable "INSERT into " name
+                    (string-append "INSERT into " name
                      " values (?, ?)")
                     k v)))))
     
