@@ -51,6 +51,7 @@
 ; populate a database instance with 3 tables--T, Y, Q--where Q is a confounder
 ; of T and Y.
 (define (populate-confounding conn ate)
+    (random-seed 42)
     (let* ([n 1000]
            [units (stream->list (in-range n))]
            [Q (map (lambda (_) (random 2)) units)]
