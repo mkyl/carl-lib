@@ -1,4 +1,4 @@
-#lang racket/base
+#lang errortrace racket/base
 
 (require rackunit
 	racket/lazy-require
@@ -22,7 +22,7 @@
             (check = ate 0.5)))
      (test-case
         "ATE of simplest confounding model"
-        (let* ([target-ate 0.25]
+        (let* ([target-ate 0]
                [ε 0.05]
                [model (open-input-file "test/confounding.carl")]
                [sqlite (sqlite3-connect #:database 'memory)]
@@ -55,8 +55,8 @@
            [units (stream->list (in-range n))]
            [Q (map (lambda (_) (random 2)) units)]
            ; TODO take ate var into account
-           [T (map (lambda (x) (if (> (+ 0.25 (* 0.25 x)) (random)) 1 0)) Q)]
-           [Y (map (lambda (x y) (if (> (/ (+ x y) 2) (random)) 1 0)) T Q)])
+           [T (map (lambda (q) (if (> (+ 0.25 (* 0.5 q)) (random)) 1 0)) Q)]
+           [Y (map (lambda (t q) (if (> (+ (* 0.5 q) (* ate t)) (random)) 1 0)) T Q)])
         (for ([(name content) (in-parallel (list "T" "Y" "Q") (list T Y Q))])
             (query-exec conn (string-append-immutable 
                 "create table " name
