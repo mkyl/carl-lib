@@ -2,7 +2,6 @@
 
 (require rackunit
 	racket/lazy-require
-    racket/stream
     racket/list
 	db)
 
@@ -53,7 +52,7 @@
 (define (populate-confounding conn ate)
     (random-seed 42)
     (let* ([n 1000]
-           [units (stream->list (in-range n))]
+           [units (range n)]
            [Q (map (lambda (_) (random 2)) units)]
            ; TODO take ate var into account
            [T (map (lambda (q) (if (> (+ 0.25 (* 0.5 q)) (random)) 1 0)) Q)]
