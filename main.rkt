@@ -7,6 +7,7 @@
     (require rackunit/text-ui
         rackunit
         "test/lang.rkt"
+        "test/ground.rkt"
         "test/detect.rkt"
         "test/integration.rkt"))
 
@@ -17,6 +18,7 @@
     (define all-tests (test-suite
         "All tests"
         lang-tests
+        ground-tests
         detect-tests
         integration-tests))
     (run-tests all-tests))
