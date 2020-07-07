@@ -13,11 +13,17 @@
 	(test-suite
 		"Grounding unit tests"
 		(test-case
-			"simple join, one-to-one")
+			"simple join, one-to-one"
+			(let* ([d (one-to-one)])
+				(check = 1 1)))
 		(test-case
-			"multiple one-to-one joins")
+			"multiple one-to-one joins"
+			(let* ([d (multiple-joins)])
+				(check = 1 1)))
 		(test-case
-			"many-to-one join")))
+			"many-to-one join"
+			(let* ([d (many-to-one)])
+				(check = 1 1)))))
 
 (define rot13
 	;; ROT13 (i.e. Caesar cipher) dict of integers
@@ -31,16 +37,26 @@
     (query-exec conn
     "create table letter_to (key integer PRIMARY KEY, value string)"))
 
-(define one-to-one
+(define (populate-multiple conn)
+	conn)
+
+(define (populate-many conn)
+	conn)
+
+(define (one-to-one)
 	;; simplest join, one-to-one
 	(let* ([sqlite (sqlite3-connect #:database 'memory)]
 		   [_ (populate-simple sqlite)])
 		sqlite))
 
-(define multiple-joins
+(define (multiple-joins)
 	;; two joins
-	'())
+	(let* ([sqlite (sqlite3-connect #:database 'memory)]
+		   [populate-multiple sqlite])
+	    sqlite))
 
-(define many-to-one
+(define (many-to-one)
 	;; a many-to-one join
-	'())
+	(let* ([sqlite (sqlite3-connect #:database 'memory)]
+		   [populate-many sqlite])
+	    sqlite))
