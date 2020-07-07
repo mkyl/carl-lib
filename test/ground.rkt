@@ -29,13 +29,23 @@
 	;; ROT13 (i.e. Caesar cipher) dict of integers
 	(map (lambda (i) (cons i (modulo (+ i 13) 26))) (range 26)))
 
+(define alphabet
+	(map integer->char (range (char->integer #\a)
+                        (add1 (char->integer #\z)))))
+
 (define (populate-simple conn)
 	(query-exec conn
-    "create table letter_from (key integer PRIMARY KEY, value string)")
+    "create table letter_from (k integer PRIMARY KEY, v string)")
     (query-exec conn
-    "create table mapping (key integer PRIMARY KEY, value integer)")
+    "create table mapping (k integer PRIMARY KEY, v integer)")
     (query-exec conn
-    "create table letter_to (key integer PRIMARY KEY, value string)"))
+    "create table letter_to (k integer PRIMARY KEY, v string)")
+    (for ([c (map string alphabet)])
+    	(query-exec conn "insert into letter_from(v) values (?)" c))
+    (for ([t rot13])
+    	(query-exec conn "insert into mapping(k, v) values (?, ?)" (car t) (cdr t)))
+    (for ([c (map string alphabet)])
+    	(query-exec conn "insert into letter_to(v) values (?)" c)))
 
 (define (populate-multiple conn)
 	conn)
