@@ -48,10 +48,22 @@
     	(query-exec conn "insert into letter_to(v) values (?)" c)))
 
 (define (populate-multiple conn)
-	conn)
+	(query-exec conn
+    "create table letter_from (k integer PRIMARY KEY, v string)")
+    (query-exec conn
+    "create table mapping1 (k integer PRIMARY KEY, v integer)")
+    (query-exec conn
+    "create table mapping2 (k integer PRIMARY KEY, v integer)")
+    (query-exec conn
+    "create table letter_to (k integer PRIMARY KEY, v string)"))
 
 (define (populate-many conn)
-	conn)
+	(query-exec conn
+    "create table treatment (k integer PRIMARY KEY, v string)")
+    (query-exec conn
+    "create table mapping (k integer PRIMARY KEY, v integer)")
+    (query-exec conn
+    "create table outcome (k integer PRIMARY KEY, v string)"))
 
 (define (one-to-one)
 	;; simplest join, one-to-one
