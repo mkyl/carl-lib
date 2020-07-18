@@ -61,7 +61,18 @@
     (query-exec conn
     "create table mapping2 (k integer PRIMARY KEY, v integer)")
     (query-exec conn
-    "create table letter_to (k integer PRIMARY KEY, v string)"))
+    "create table letter_to (k integer PRIMARY KEY, v string)")
+    (for ([c (map string alphabet)])
+    	(query-exec conn "insert into letter_from(v) values (?)" c))
+    (for ([c (map string alphabet)])
+    	(query-exec conn "insert into letter_to(v) values (?)" c))
+    ; rot13 twice is identity
+    (for ([t rot13])
+    	(query-exec conn "insert into mapping1(k, v) values (?, ?)" 
+    		(car t) (cdr t)))
+    (for ([t rot13])
+    	(query-exec conn "insert into mapping2(k, v) values (?, ?)"
+    		(car t) (cdr t))))
 
 (define (populate-many conn)
 	(query-exec conn
@@ -72,11 +83,26 @@
     "create table outcome (k integer PRIMARY KEY, v string)")
     (for ([i (range ROWS)])
     	(query-exec conn "insert into treatment(v) values (?)" i))
+    (for ([i (range ROWS)])
+    	(query-exec conn "insert into outcome(v) values (?)" i))
 
     ; insert 1 one time, 2 two times, ..., 100 one-hundred times
     (for* ([i (range ROWS)]
     	   [j (range i)])
-    	(query-exec conn "insert into outcome(v) values (?)" i)))
+    	(query-exec conn "insert into mapping(k, v) values (?, ?)" i j)))
+
+; equivalent to "letter_to[x] <- letter_from[x] WHERE mapping[x]"
+(define model-simple
+	(list (rule (predicate 'letter_to (list 'x))
+		        (predicate 'letter_from (list 'x))
+		        (list (predicate 'mapping (list 'x))))))
+
+; equivalent to "outcome[x] <- treatment[x] WHERE mapping1[x], mapping2[x]"
+(define model-multiple
+	(list (rule (predicate 'letter_to (list 'x))
+		        (predicate 'letter_from (list 'x))
+		        (list (predicate 'mapping1 (list 'x))
+		              (predicate 'mapping2 (list 'x))))))
 
 ; equivalent to "outcome[x] <- treatment[x] WHERE mapping[x]"
 (define model-many
