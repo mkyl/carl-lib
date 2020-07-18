@@ -4,6 +4,7 @@
     db
     graph
     racket/list
+    racket/hash
     carl-lib/lang
     carl-lib/ground)
 
@@ -17,12 +18,19 @@
 		"Grounding unit tests"
 		(test-case
 			"simple join, one-to-one"
-			(let* ([d (one-to-one)])
-				(check = 1 1)))
+			(let* ([d (one-to-one)]
+				   [g (ground model-simple d)])
+				(for ([c (map string alphabet)])
+					(check-eq? (length (get-neighbors g c)) 1)
+					(check-eq? (first (get-neighbors g c)) (hash-ref rot13-char c)))))
 		(test-case
 			"multiple one-to-one joins"
-			(let* ([d (multiple-joins)])
-				(check = 1 1)))
+			(let* ([d (multiple-joins)]
+				   [g (ground model-multiple d)])
+				(for ([c (map string alphabet)])
+					(check-eq? (length (get-neighbors g c)) 1)
+					; rot13 twice is identity
+					(check-eq? (first (get-neighbors g c)) c))))
 		(test-case
 			"many-to-one join"
 			(let* ([d (many-to-one)]
@@ -34,6 +42,10 @@
 (define rot13
 	;; ROT13 (i.e. Caesar cipher) dict of integers
 	(map (lambda (i) (cons i (modulo (+ i 13) 26))) (range 26)))
+
+(define rot13-char
+	; TODO fixme: this is a map of int:int not char:char
+	(apply hash (flatten rot13)))
 
 (define alphabet
 	(map integer->char (range (char->integer #\a)
