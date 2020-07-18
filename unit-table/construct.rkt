@@ -9,8 +9,8 @@
 	graph)
 
 (define (construct aug-gcm q Z)
-	(let* ([Y (table-name (causal-q-outcome q))]
-		   [T (table-name (causal-q-treatment q))]
+	(let* ([Y (predicate-name (c-query-outcome q))]
+		   [T (predicate-name (c-query-treatment q))]
 		   [g (unweighted-graph/undirected (get-edges aug-gcm))]
 		   [vs (get-vertices g)]
 		   [outcomes (filter (lambda (x) (equal? (vector-ref x 1) Y)) vs)]
@@ -19,7 +19,7 @@
 		   [treatments (map (lambda (x pl)
 		    					(find-nodes g pl (set T) x)) outcomes path-len)]
 		   [covariates (map (lambda (x pl)
-		   						(find-nodes g pl (set-map Z table-name) x))
+		   						(find-nodes g pl (set-map Z predicate-name) x))
 								    outcomes path-len)]
 		   [data (map produce-row outcomes treatments covariates)]
 		   [result (list->matrix (length outcomes) (+ 2 (length Z))

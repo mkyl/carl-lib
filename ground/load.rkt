@@ -12,8 +12,8 @@
         g))
 
 (define (fetch-edges rule dbc)
-    (let* ([h (query-rows dbc (string-append "select key, \"" (table-name (rule-head rule)) "\", value from " (table-name (rule-head rule)) " order by key"))]
-           [b (query-rows dbc (string-append "select key, \"" (table-name (rule-body rule)) "\", value from " (table-name (rule-body rule)) " order by key"))]
+    (let* ([h (query-rows dbc (string-append "select key, \"" (predicate-name (rule-head rule)) "\", value from " (predicate-name (rule-head rule)) " order by key"))]
+           [b (query-rows dbc (string-append "select key, \"" (predicate-name (rule-body rule)) "\", value from " (predicate-name (rule-body rule)) " order by key"))]
            [result (map list b h)])
         result))
         

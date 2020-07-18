@@ -7,15 +7,15 @@
          "lang/expander.rkt")
 
 (provide (proc-doc/names
-		  create-model (input-port? . -> . model?) (port) 
+		  create-inputs (input-port? . -> . inputs?) (port) 
 		  ("Read a file in the CaRL language and output the set of 
 		  	rules and queries it contains."))
 		 (struct-out rule)
-         (struct-out causal-q)
-         (struct-out model)
-         (struct-out table))
+         (struct-out c-query)
+         (struct-out inputs)
+         (struct-out predicate))
 
-(define (create-model port)
+(define (create-inputs port)
     (let* ([ast (load-rules port)]
-           [model (handle-model ast)])
-        model))
+           [inputs (handle-inputs ast)])
+        inputs))

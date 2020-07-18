@@ -1,26 +1,31 @@
 #lang racket/base
-(require racket/list)
+(require racket/list
+         racket/contract)
 
-(struct rule (head body) #:transparent)
-(struct causal-q (outcome treatment) #:transparent)
-(struct model (rules queries) #:transparent)
-(struct table (name) #:transparent)
-(provide (struct-out rule)
-         (struct-out causal-q)
-         (struct-out model)
-         (struct-out table))
+(struct rule (head body where) #:transparent)
+(struct c-query (outcome treatment) #:transparent)
+(struct inputs (rules queries) #:transparent)
+(struct predicate (name vars) #:transparent)
+(provide (contract-out 
+          [struct inputs ((rules (listof rule?)) (queries (listof c-query?)))]
+          [struct c-query ((outcome predicate?) (treatment predicate?))]
+          [struct rule 
+               ((head predicate?)
+                (body predicate?)
+                (where (listof predicate?)))]
+          [struct predicate ((name symbol?) (vars (listof symbol?)))]))
 
-(define (handle-model m)
+(define (handle-inputs m)
     (let* ([datum (syntax->datum m)]
            [xs (cleanup datum)]
            [rs (filter rule? xs)]
-           [qs (filter causal-q? xs)]
-           [result (model rs qs)])
+           [qs (filter c-query? xs)]  
+           [result (inputs rs qs)])
         result))
-(provide handle-model)
+(provide handle-inputs)
 
 (define (cleanup m)
-    (cond [(and (list? m) (equal? (first m) 'table)) (table (first (rest m)))]
+    (cond [(and (list? m) (equal? (first m) 'table)) (predicate (first (rest m)))]
           [(and (list? m) (equal? (first m) 'rule)) (handle-rule m)]
           [(and (list? m) (equal? (first m) 'query)) (handle-query m)]
           [(list? m) (flatten (filter-map cleanup m))]
@@ -36,4 +41,4 @@
     (let* ([cleaned (cleanup (rest q))]
            [outcome (first cleaned)]
            [treatment (first (rest cleaned))])
-        (causal-q outcome treatment)))
+        (c-query outcome treatment)))

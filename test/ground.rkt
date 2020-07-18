@@ -9,6 +9,9 @@
 
 (provide ground-tests)
 
+; how many mock rows to add to testing DB
+(define ROWS 25)
+
 (define ground-tests
 	(test-suite
 		"Grounding unit tests"
@@ -22,8 +25,11 @@
 				(check = 1 1)))
 		(test-case
 			"many-to-one join"
-			(let* ([d (many-to-one)])
-				(check = 1 1)))))
+			(let* ([d (many-to-one)]
+				   [g (ground model-many d)])
+				(for ([i (range ROWS)])
+					; the node with value i has i neighbors
+					(check-eq? (length (get-neighbors g i)) i))))))
 
 (define rot13
 	;; ROT13 (i.e. Caesar cipher) dict of integers
@@ -63,7 +69,20 @@
     (query-exec conn
     "create table mapping (k integer PRIMARY KEY, v integer)")
     (query-exec conn
-    "create table outcome (k integer PRIMARY KEY, v string)"))
+    "create table outcome (k integer PRIMARY KEY, v string)")
+    (for ([i (range ROWS)])
+    	(query-exec conn "insert into treatment(v) values (?)" i))
+
+    ; insert 1 one time, 2 two times, ..., 100 one-hundred times
+    (for* ([i (range ROWS)]
+    	   [j (range i)])
+    	(query-exec conn "insert into outcome(v) values (?)" i)))
+
+; equivalent to "outcome[x] <- treatment[x] WHERE mapping[x]"
+(define model-many
+	(list (rule (predicate 'outcome (list 'x))
+		        (predicate 'treatment (list 'x))
+		        (list (predicate 'mapping (list 'x))))))
 
 (define (one-to-one)
 	;; simplest join, one-to-one

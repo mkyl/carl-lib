@@ -14,10 +14,10 @@
      (test-case
         "GCM generation for simplest model"
         (let* ([f (open-input-file "test/simplest.carl")]
-              [m (create-model f)]
+              [m (create-inputs f)]
               [sqlite (sqlite3-connect #:database 'memory)]
               [_ (populate-db sqlite)]
-              [g (ground (model-rules m) sqlite)]
+              [g (ground (inputs-rules m) sqlite)]
               [g_undir (undirected-graph (get-edges g))])
             ; expect 6 edges, 9 vertices
             (check = (length (get-edges g)) 6)
@@ -27,11 +27,11 @@
      (test-case
         "Correct number of rules and queries"
         (let* ([f (open-input-file "test/simple.carl")]
-               [m (create-model f)])
+               [m (create-inputs f)])
             ; one query
-            (check = (length (model-queries m)) 1)
+            (check = (length (inputs-queries m)) 1)
             ; two rules
-            (check = (length (model-rules m)) 2)))))
+            (check = (length (inputs-rules m)) 2)))))
 
 (define (populate-db conn)
     (query-exec conn
