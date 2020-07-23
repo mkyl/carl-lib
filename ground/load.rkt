@@ -3,14 +3,18 @@
 (require racket/list
     racket/string
     racket/set
-	  db
+    racket/vector
+	db
     graph
     datalog
-	  carl-lib/lang)
+	carl-lib/lang)
 
 (define (ground rules dbc)
     (let* ([qs (map (lambda (r) (create-query dbc r)) rules)]
-           [edges (flatten (map (lambda (r) query->edge dbc r) rules))]
+           [heads (map rule-head rules)]
+           [bodies (map rule-body rules)]
+           [edges (apply append (map (lambda (q h b) (query->edges dbc q h b))
+                                      qs heads bodies))]
            [g (directed-graph edges)]) 
         g))
 
@@ -20,8 +24,8 @@
 (struct node (unit name value))
 (struct check (tab1 col1 tab2 col2))
 
-(struct atom (unit attr value))
-(provide (struct-out atom))
+(struct atom (unit attr value) #:transparent)
+(provide atom)
 
 (define (create-query dbc r)
     (let* ([h (rule-head r)]
@@ -85,8 +89,23 @@
         " = " 
         (symbol->string (check-tab2 c)) "." (check-col2 c)))
 
-(define (query->edge dbc q)
-    (query-rows dbc q))
+(define (query->edges dbc q pred1 pred2)
+    (let* ([qrs (query-rows dbc q)]
+           [attr1 (predicate-name pred1)]
+           [attr2 (predicate-name pred2)]
+           [key1-size (length (predicate-vars pred1))]
+           [edges (map (lambda (r) (construct-edge r attr1 attr2 key1-size)) qrs)])
+        edges))
+
+(define (construct-edge row attr1 attr2 key1-size)
+    (let*-values ([(to from) (vector-split-at row (add1 key1-size))]
+                  [(to-key) (vector-drop-right to 1)]
+                  [(to-val) (vector-take-right to 1)]
+                  [(from-key) (vector-drop-right from 1)]
+                  [(from-val) (vector-take-right from 1)])
+       (list (atom (vector->list to-key) attr1 (vector-ref to-val 0))
+             (atom (vector->list from-key) attr2 (vector-ref from-val 0)))))
+    
 
 ; PRAGMA table_info COLUMNS
 (define CID

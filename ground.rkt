@@ -11,3 +11,6 @@
 (provide (proc-doc/names ground ((listof rule?) connection?
 	. -> . (and/c graph? unweighted-graph?)) (model conn) 
 	("Combine CaRL rules with a database instance to build a ground causal model.")))
+
+(provide (contract-out
+    [struct atom ((unit list?) (attr symbol?) (value any/c))]))

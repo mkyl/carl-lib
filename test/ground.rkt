@@ -20,32 +20,41 @@
 			"simple join, one-to-one"
 			(let* ([d (one-to-one)]
 				   [g (ground model-simple d)])
-				(for ([c (map string alphabet)])
-					(check-eq? (length (get-neighbors g c)) 1)
-					(check-eq? (first (get-neighbors g c)) (hash-ref rot13-char c)))))
+				(for ([c alphabet])
+					(let* ([n (add1 (- (char->integer c) (char->integer #\a)))]
+						   [a (atom (list n) 'letter_to (string c))])
+						(check-equal? (length (get-neighbors g a)) 1)
+						(check-equal? (atom-value (first (get-neighbors g a)))
+								   (hash-ref rot13-char (string c)))))))
 		(test-case
 			"multiple one-to-one joins"
 			(let* ([d (multiple-joins)]
 				   [g (ground model-multiple d)])
-				(for ([c (map string alphabet)])
-					(check-eq? (length (get-neighbors g c)) 1)
-					; rot13 twice is identity
-					(check-eq? (first (get-neighbors g c)) c))))
+				(for ([c alphabet])
+					(let* ([n (add1 (- (char->integer c) (char->integer #\a)))]
+						   [a (atom (list n) 'letter_to (string c))])
+						(check-equal? (length (get-neighbors g a)) 1)
+						; rot13 twice is identity
+						(check-equal? (atom-value (first (get-neighbors g a))) 
+							(string c))))))
 		(test-case
 			"many-to-one join"
 			(let* ([d (many-to-one)]
 				   [g (ground model-many d)])
-				(for ([i (range ROWS)])
+				(for ([i (range 1 (add1 ROWS))])
 					; the node with value i has i neighbors
-					(check-eq? (length (get-neighbors g i)) i))))))
+					(check-equal? (length (get-neighbors g 
+											(atom (list i) 'outcome i))) i))))))
 
 (define rot13
 	;; ROT13 (i.e. Caesar cipher) dict of integers
-	(map (lambda (i) (cons i (modulo (+ i 13) 26))) (range 26)))
+	(map (lambda (i) (cons (add1 i) (add1 (modulo (+ i 13) 26)))) (range 26)))
 
+; map of string->string
 (define rot13-char
-	; TODO fixme: this is a map of int:int not char:char
-	(apply hash (flatten rot13)))
+	(apply hash (map (lambda (i) (string (integer->char
+										 	 (- (+ (char->integer #\a) i) 1))))
+				     (flatten rot13))))
 
 (define alphabet
 	(map integer->char (range (char->integer #\a)
@@ -94,14 +103,14 @@
     "create table mapping (k integer, v integer, PRIMARY KEY (k, v))")
     (query-exec conn
     "create table outcome (k integer PRIMARY KEY, v string)")
-    (for ([i (range ROWS)])
+    (for ([i (range 1 (add1 ROWS))])
     	(query-exec conn "insert into treatment(v) values (?)" i))
-    (for ([i (range ROWS)])
+    (for ([i (range 1 (add1 ROWS))])
     	(query-exec conn "insert into outcome(v) values (?)" i))
 
     ; insert 1 one time, 2 two times, ..., 100 one-hundred times
-    (for* ([i (range ROWS)]
-    	   [j (range i)])
+    (for* ([i (range 1 (add1 ROWS))]
+    	   [j (range 1 (add1 i))])
     	(query-exec conn "insert into mapping(k, v) values (?, ?)" i j)))
 
 ; equivalent to "letter_to[x] <- letter_from[y] WHERE mapping(x,y)"
