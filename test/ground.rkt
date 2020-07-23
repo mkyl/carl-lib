@@ -1,4 +1,4 @@
-#lang racket/base
+#lang errortrace racket/base
 
 (require rackunit
     db
@@ -51,11 +51,11 @@
 	(map integer->char (range (char->integer #\a)
                         (add1 (char->integer #\z)))))
 
-(define (populate-simple conn)
+(define (populate-simple! conn)
 	(query-exec conn
     "create table letter_from (k integer PRIMARY KEY, v string)")
     (query-exec conn
-    "create table mapping (k integer PRIMARY KEY, v integer)")
+    "create table mapping (k integer, v integer, PRIMARY KEY (k, v))")
     (query-exec conn
     "create table letter_to (k integer PRIMARY KEY, v string)")
     (for ([c (map string alphabet)])
@@ -65,13 +65,13 @@
     (for ([c (map string alphabet)])
     	(query-exec conn "insert into letter_to(v) values (?)" c)))
 
-(define (populate-multiple conn)
+(define (populate-multiple! conn)
 	(query-exec conn
     "create table letter_from (k integer PRIMARY KEY, v string)")
     (query-exec conn
-    "create table mapping1 (k integer PRIMARY KEY, v integer)")
+    "create table mapping1 (k integer, v integer, PRIMARY KEY (k, v))")
     (query-exec conn
-    "create table mapping2 (k integer PRIMARY KEY, v integer)")
+    "create table mapping2 (k integer, v integer, PRIMARY KEY (k, v))")
     (query-exec conn
     "create table letter_to (k integer PRIMARY KEY, v string)")
     (for ([c (map string alphabet)])
@@ -86,11 +86,12 @@
     	(query-exec conn "insert into mapping2(k, v) values (?, ?)"
     		(car t) (cdr t))))
 
-(define (populate-many conn)
+
+(define (populate-many! conn)
 	(query-exec conn
     "create table treatment (k integer PRIMARY KEY, v string)")
     (query-exec conn
-    "create table mapping (k integer PRIMARY KEY, v integer)")
+    "create table mapping (k integer, v integer, PRIMARY KEY (k, v))")
     (query-exec conn
     "create table outcome (k integer PRIMARY KEY, v string)")
     (for ([i (range ROWS)])
@@ -103,39 +104,39 @@
     	   [j (range i)])
     	(query-exec conn "insert into mapping(k, v) values (?, ?)" i j)))
 
-; equivalent to "letter_to[x] <- letter_from[x] WHERE mapping[x]"
+; equivalent to "letter_to[x] <- letter_from[y] WHERE mapping(x,y)"
 (define model-simple
 	(list (rule (predicate 'letter_to (list 'x))
-		        (predicate 'letter_from (list 'x))
-		        (list (predicate 'mapping (list 'x))))))
+		        (predicate 'letter_from (list 'y))
+		        (list (predicate 'mapping (list 'x 'y))))))
 
-; equivalent to "outcome[x] <- treatment[x] WHERE mapping1[x], mapping2[x]"
+; equivalent to "outcome[x] <- treatment[z] WHERE mapping1(x, y), mapping2(y, z)"
 (define model-multiple
 	(list (rule (predicate 'letter_to (list 'x))
-		        (predicate 'letter_from (list 'x))
-		        (list (predicate 'mapping1 (list 'x))
-		              (predicate 'mapping2 (list 'x))))))
+		        (predicate 'letter_from (list 'z))
+		        (list (predicate 'mapping1 (list 'x 'y))
+		              (predicate 'mapping2 (list 'y 'z))))))
 
-; equivalent to "outcome[x] <- treatment[x] WHERE mapping[x]"
+; equivalent to "outcome[x] <- treatment[y] WHERE mapping(x, y)"
 (define model-many
 	(list (rule (predicate 'outcome (list 'x))
-		        (predicate 'treatment (list 'x))
-		        (list (predicate 'mapping (list 'x))))))
+		        (predicate 'treatment (list 'y))
+		        (list (predicate 'mapping (list 'x 'y))))))
 
 (define (one-to-one)
 	;; simplest join, one-to-one
 	(let* ([sqlite (sqlite3-connect #:database 'memory)]
-		   [_ (populate-simple sqlite)])
+		   [_ (populate-simple! sqlite)])
 		sqlite))
 
 (define (multiple-joins)
 	;; two joins
 	(let* ([sqlite (sqlite3-connect #:database 'memory)]
-		   [populate-multiple sqlite])
+		   [_ (populate-multiple! sqlite)])
 	    sqlite))
 
 (define (many-to-one)
 	;; a many-to-one join
 	(let* ([sqlite (sqlite3-connect #:database 'memory)]
-		   [populate-many sqlite])
+		   [_ (populate-many! sqlite)])
 	    sqlite))
