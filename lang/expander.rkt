@@ -39,7 +39,7 @@
             (with-syntax ([r (rule->c-query (syntax->datum (parse-carl #'r)))])
                 #'r)]
         [((~datum rule1) p1 "<-" p2 
-          (~optional ("where" p3) #:defaults ([p3 #'(predicate-list )])))
+          (~seq (~optional "where") (~optional p3 #:defaults ([p3 #'(predicate-list )]))))
          (with-syntax ([p1 (parse-carl #'p1)]
                         [p2 (parse-carl #'p2)]
                         [p3 (parse-carl #'p3)])
@@ -51,8 +51,8 @@
         [((~datum symbol) x) (with-syntax ([x (string->symbol (syntax->datum #'x))])
                                 #'x)]
         [((~or (~datum symbol-list)
-               (~datum predicate-list)) ~rest x)
-            (with-syntax ([x (map parse-carl (syntax-e #'x))]) #'x)]))
+               (~datum predicate-list)) (~alt "," x) ...)
+            (with-syntax ([x (map parse-carl (syntax-e #'(x ...)))]) #'x)]))
 
 (define (rule->c-query r)
     (c-query (rule-head r) (rule-body r) (rule-where r)))

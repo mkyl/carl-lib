@@ -19,4 +19,5 @@
         ["?" (token 'QUESTION-MARK lexeme)]
         ["," (token 'COMMA lexeme)]
         ["where" (token 'WHERE lexeme)]
+        ["WHERE" (token 'WHERE lexeme)]
         [(repetition 1 +inf.0 (union alphabetic "_")) (token 'ID lexeme)]))

@@ -25,6 +25,19 @@
             ; graph should have 3 connected components (ignoring direction)
             (check = (length (cc g_undir)) 3)))
      (test-case
+        "Handles where clauses reasonably"
+        (let* ([f (open-input-bytes 
+                    #"Y[X] <- T[Y] where A[X], B[Y] \nY[X]<-T[Y] where C[X, Y]?")]
+               [m (create-inputs f)]
+               [r (car (inputs-rules m))]
+               [q (car (inputs-queries m))]
+               [r-where (rule-where r)]
+               [q-where (c-query-where q)]
+               [q-where-vars (predicate-vars (car q-where))])
+            (check = (length r-where) 2)
+            (check = (length q-where) 1)
+            (check = (length q-where-vars) 2)))
+     (test-case
         "Correct number of rules and queries"
         (let* ([f (open-input-file "test/simple.carl")]
                [m (create-inputs f)])
