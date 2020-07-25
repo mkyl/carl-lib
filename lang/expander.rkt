@@ -5,10 +5,10 @@
 
 (require (for-syntax syntax/parse))
 
-(struct rule (head body where) #:transparent)
-(struct c-query (outcome treatment where) #:transparent)
+(struct rule (head body where) #:prefab)
+(struct c-query (outcome treatment where) #:prefab)
 (struct inputs (rules queries) #:transparent)
-(struct predicate (name vars) #:transparent)
+(struct predicate (name vars) #:prefab)
 (provide (contract-out 
           [struct inputs ((rules (listof rule?)) (queries (listof c-query?)))]
           [struct c-query ((outcome predicate?)
@@ -21,54 +21,39 @@
           [struct predicate ((name symbol?) (vars (listof symbol?)))]))
 
 (define (handle-inputs m)
-    (let* ([_ (displayln (syntax->datum (parse-carl m)))]
-           [datum (syntax->datum m)]
-           [xs (cleanup datum)]
-           [rs (filter rule? xs)]
-           [qs (filter c-query? xs)]  
-           [result (inputs rs qs)])
+    (let* ([s (parse-carl m)]
+           [all (syntax->datum s)]
+           [rules (filter rule? all)]
+           [queries (filter c-query? all)]
+           [result (inputs rules queries)])
         result))
+
 (provide handle-inputs)
 
 (define (parse-carl s)
     (syntax-parse s
-        [((~literal model) ~rest x)
-            (with-syntax ([x (map parse-carl (syntax-e #'x))]) #'x)]
+        [((~literal model) (~alt "\n" x) ...)
+            (with-syntax ([y (map parse-carl (syntax-e #'(x ...)))]) #'y)]
         [((~datum line) x) (with-syntax ([x (parse-carl (syntax-e #'x))]) #'x)]
-        [((~datum query) r "?") (with-syntax ([r (parse-carl #'r)])
-                                    'query_todo)]
-        [((~datum rule) p1 "<-" p2) (with-syntax ([p1 (parse-carl #'p1)]
-                                                  [p2 (parse-carl #'p2)])
-                                        #'(rule p1 p2 void))]
+        [((~datum query) r "?")
+            (with-syntax ([r (rule->c-query (syntax->datum (parse-carl #'r)))])
+                #'r)]
+        [((~datum rule1) p1 "<-" p2 
+          (~optional ("where" p3) #:defaults ([p3 #'(predicate-list )])))
+         (with-syntax ([p1 (parse-carl #'p1)]
+                        [p2 (parse-carl #'p2)]
+                        [p3 (parse-carl #'p3)])
+            #'#s(rule p1 p2 p3))]
         [((~datum predicate) name "[" vars "]") 
                   (with-syntax ([name (parse-carl #'name)]
                                 [vars (parse-carl #'vars)]) 
-                      #'(predicate name vars))]
-        [((~datum symbol) x) #'x]
-        ["\n" #'void]
+                    #'#s(predicate name vars))]
+        [((~datum symbol) x) (with-syntax ([x (string->symbol (syntax->datum #'x))])
+                                #'x)]
         [((~or (~datum symbol-list)
                (~datum predicate-list)) ~rest x)
             (with-syntax ([x (map parse-carl (syntax-e #'x))]) #'x)]))
 
 (define (rule->c-query r)
-    (let ([r (c-query (rule-head r) (rule-body r) (rule-where r))])
-        #'r))
+    (c-query (rule-head r) (rule-body r) (rule-where r)))
 
-(define (cleanup m)
-    (cond [(and (list? m) (equal? (first m) 'table)) (predicate (first (rest m)))]
-          [(and (list? m) (equal? (first m) 'rule)) (handle-rule m)]
-          [(and (list? m) (equal? (first m) 'query)) (handle-query m)]
-          [(list? m) (flatten (filter-map cleanup m))]
-          [else #f]))
-
-(define (handle-rule r)
-    (let* ([cleaned (cleanup (rest r))]
-           [head (first cleaned)]
-           [body (first (rest cleaned))])
-        (rule head body)))
-
-(define (handle-query q)
-    (let* ([cleaned (cleanup (rest q))]
-           [outcome (first cleaned)]
-           [treatment (first (rest cleaned))])
-        (c-query outcome treatment)))
