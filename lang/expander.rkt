@@ -20,6 +20,7 @@
                 (where (listof predicate?)))]
           [struct predicate ((name symbol?) (vars (listof symbol?)))]))
 
+; given a lexed input, return a corresponding `inputs` struct
 (define (handle-inputs m)
     (let* ([s (parse-carl m)]
            [all (syntax->datum s)]
@@ -30,9 +31,15 @@
 
 (provide handle-inputs)
 
+; convert the syntax from the lexer into syntax consisting
+; of only the structs above. possibly trickiest function
+; in the codebase
 (define (parse-carl s)
     (syntax-parse s
+        ; a model is composed of "model" followed by a sequence of "\n" and "x"
+        ; order matters: x matching anything
         [((~literal model) (~alt "\n" x) ...)
+            ; return a list of the x's, parsed recursively
             (with-syntax ([y (map parse-carl (syntax-e #'(x ...)))]) #'y)]
         [((~datum line) x) (with-syntax ([x (parse-carl (syntax-e #'x))]) #'x)]
         [((~datum query) r "?")
@@ -43,6 +50,7 @@
          (with-syntax ([p1 (parse-carl #'p1)]
                         [p2 (parse-carl #'p2)]
                         [p3 (parse-carl #'p3)])
+            ; #s to create a struct rather than a list
             #'#s(rule p1 p2 p3))]
         [((~datum predicate) name "[" vars "]") 
                   (with-syntax ([name (parse-carl #'name)]

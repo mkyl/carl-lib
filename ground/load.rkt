@@ -27,6 +27,7 @@
 (struct atom (unit attr value) #:transparent)
 (provide atom)
 
+; create an SQL query that retrieves edges matching a causal rule
 (define (create-query dbc r)
     (let* ([h (rule-head r)]
            [b (rule-body r)]
@@ -41,6 +42,7 @@
            [conds (string-join cs " AND ")])
         (string-append "SELECT DISTINCT " attrs " FROM " tables " WHERE " conds)))
 
+; build the conditions for the WHERE clause
 (define (build-conds dbc preds)
     (let* ([g (datalog-graph preds)]
            [l (symbol-lookup dbc preds)]
@@ -49,6 +51,7 @@
            [conds (map check->string cs)])
         conds))
 
+; create a graph of tables and logical variables joining them in the query
 (define (datalog-graph preds)
     (let* (
         [cs (combinations preds 2)]
@@ -73,6 +76,7 @@
                                         (symbol->string (predicate-name p))))])
                 (cons (cons (predicate-name p) (car vs)) (cdr vs))))))
 
+; convert an edge in the graph of tables into a condition
 (define (edge->check lookup g edge)
     (let* ([t1 (car edge)]
            [t2 (second edge)]
@@ -83,12 +87,15 @@
             t2
             (hash-ref lookup (cons t2 s)))))
 
+; convert the WHERE condition struct into a string like "T1.x = T2.y"
 (define (check->string c)
     (string-append 
         (symbol->string (check-tab1 c)) "." (check-col1 c)
         " = " 
         (symbol->string (check-tab2 c)) "." (check-col2 c)))
 
+; given an sql query, return the edges in the ground graph that
+; the query corresponds to
 (define (query->edges dbc q pred1 pred2)
     (let* ([qrs (query-rows dbc q)]
            [attr1 (predicate-name pred1)]
@@ -97,6 +104,7 @@
            [edges (map (lambda (r) (construct-edge r attr1 attr2 key1-size)) qrs)])
         edges))
 
+; construct an edge in the grounded graph given a query result row
 (define (construct-edge row attr1 attr2 key1-size)
     (let*-values ([(to from) (vector-split-at row (add1 key1-size))]
                   [(to-key) (vector-drop-right to 1)]
@@ -121,6 +129,7 @@
 (define PK
   5)
 
+; return a list of the name of the primary keys of a table
 (define (read-cols dbc t-name)
     ; TODO why does this not work? `(query-rows dbc "PRAGMA table_info(?)" table)`
     ; TODO better approach: https://en.wikipedia.org/wiki/Information_schema
@@ -133,5 +142,6 @@
 (define (isprimary c)
   (not (eq? (vector-ref c PK) 0)))
 
+; get the name of a column
 (define (get-name v)
   (vector-ref v NAME))
