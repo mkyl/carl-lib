@@ -1,9 +1,9 @@
 #lang brag
 model : NEWLINE* (line NEWLINE*)*
-line : rule | query
-query : head CAUSES head QUESTION-MARK
-rule : head CAUSES body
-head: table LEFT-BRACKET variable RIGHT-BRACKET
-body: table LEFT-BRACKET variable RIGHT-BRACKET
-table: ID
-variable: ID
+line : rule1 | query
+rule1 : predicate CAUSES predicate (WHERE predicate-list)?
+predicate-list: predicate (COMMA predicate)*
+query : rule1 QUESTION-MARK
+predicate: symbol LEFT-BRACKET symbol-list RIGHT-BRACKET
+symbol-list: symbol (COMMA symbol)*
+symbol: ID

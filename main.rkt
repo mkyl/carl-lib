@@ -7,6 +7,7 @@
     (require rackunit/text-ui
         rackunit
         "test/lang.rkt"
+        "test/ground.rkt"
         "test/detect.rkt"
         "test/integration.rkt"))
 
@@ -17,6 +18,7 @@
     (define all-tests (test-suite
         "All tests"
         lang-tests
+        ground-tests
         detect-tests
         integration-tests))
     (run-tests all-tests))
@@ -30,14 +32,14 @@
          racket/list)
 (provide compute)
 (define (compute f db) (let* 
-  ([m (create-model f)]
-   [gcm (ground (model-rules m) db)]
+  ([m (create-inputs f)]
+   [gcm (ground (inputs-rules m) db)]
    [aug-gcm (embed gcm)]
-   [T (causal-q-treatment (first (model-queries m)))]
-   [Y (causal-q-outcome (first (model-queries m)))]
-   [Z (detect (model-rules m) T Y)]
+   [T (c-query-treatment (first (inputs-queries m)))]
+   [Y (c-query-outcome (first (inputs-queries m)))]
+   [Z (detect (inputs-rules m) T Y)]
    ; TODO enable support for more than 1 query
-   [table (construct aug-gcm (first (model-queries m)) Z)]
+   [table (construct aug-gcm (first (inputs-queries m)) Z)]
    [ate (estimate table)]) 
   ate))
 
