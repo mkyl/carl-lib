@@ -1,14 +1,16 @@
 #lang racket/base
 
 (require racket/contract
+		 math/matrix
 		 scribble/srcdoc
 		 (for-doc racket/base scribble/manual)
 		 graph
+		 carl-lib/unit-table
 		 "embed/summary.rkt")
 
-(provide (proc-doc/names embed ((and/c graph? unweighted-graph?)
-	. -> . (and/c graph? unweighted-graph?)) (gcm) 
-	("Apply embeddings to a ground causal model (GCM) to create the augmented GCM.")))
+(provide (proc-doc/names embed ((listof pre-row?)
+	. -> . matrix?) (gcm) 
+	("Apply embeddings to a semi-structured table to create flat table.")))
 
 (define embed 
 	summarize)

@@ -3,11 +3,16 @@
 (require 
 	carl-lib/lang
 	carl-lib/ground
-	math/matrix
-	math/array
 	racket/list
 	racket/set
+	racket/contract
 	graph)
+
+(struct pre-row (y ts zs))
+
+(provide (contract-out [struct pre-row ((y atom?)
+          					            (ts (listof atom?))
+          				   		 		(zs (listof atom?)))]))
 
 (define (construct aug-gcm q Z)
 	(let* ([Y (predicate-name (c-query-outcome q))]
@@ -22,10 +27,8 @@
 		   [covariates (map (lambda (x pl)
 		   						(find-nodes g pl (set-map Z predicate-name) x))
 								    outcomes path-len)]
-		   [data (map produce-row outcomes treatments covariates)]
-		   [result (list->matrix (length outcomes) (+ 2 (length Z))
-		   	 			(flatten data))])
-		result))
+		   [data (map produce-row outcomes treatments covariates)])
+		data))
 
 ; given node type N and a outcome node Y-node
 ; return all nodes with a possible causal path
@@ -36,8 +39,6 @@
 		(get-vertices g)))
 
 (define (produce-row y ts zs)
-	(append (list (atom-value y))
-			(map (λ (t) (atom-value t)) ts)
-		 	(map (λ (z) (atom-value z)) zs)))
+	(pre-row y ts zs))
 
 (provide construct)

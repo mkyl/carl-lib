@@ -34,12 +34,12 @@
 (define (compute f db) (let* 
   ([m (create-inputs f)]
    [gcm (ground (inputs-rules m) db)]
-   [aug-gcm (embed gcm)]
    [T (c-query-treatment (first (inputs-queries m)))]
    [Y (c-query-outcome (first (inputs-queries m)))]
    [Z (detect (inputs-rules m) T Y)]
    ; TODO enable support for more than 1 query
-   [table (construct aug-gcm (first (inputs-queries m)) Z)]
+   [almost-table (construct gcm (first (inputs-queries m)) Z)]
+   [table (embed almost-table)]
    [ate (estimate table)]) 
   ate))
 
