@@ -9,7 +9,8 @@
         "test/lang.rkt"
         "test/ground.rkt"
         "test/detect.rkt"
-        "test/integration.rkt"))
+        "test/integration.rkt"
+        "test/embed.rkt"))
 
 (module+ test
     ;; Any code in this `test` submodule runs when this file is run using DrRacket
@@ -20,7 +21,8 @@
         lang-tests
         ground-tests
         detect-tests
-        integration-tests))
+        integration-tests
+        embed-tests))
     (run-tests all-tests))
 
 (require carl-lib/lang

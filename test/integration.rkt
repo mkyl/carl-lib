@@ -2,7 +2,7 @@
 
 (require rackunit
 	racket/lazy-require
-    racket/list
+  racket/list
 	db)
 
 ; lazy-require used to avoid cycle between main.rkt <-> integration.rkt
