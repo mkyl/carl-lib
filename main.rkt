@@ -9,7 +9,8 @@
         "test/lang.rkt"
         "test/ground.rkt"
         "test/detect.rkt"
-        "test/integration.rkt"))
+        "test/integration.rkt"
+        "test/embed.rkt"))
 
 (module+ test
     ;; Any code in this `test` submodule runs when this file is run using DrRacket
@@ -20,7 +21,8 @@
         lang-tests
         ground-tests
         detect-tests
-        integration-tests))
+        integration-tests
+        embed-tests))
     (run-tests all-tests))
 
 (require carl-lib/lang
@@ -34,12 +36,12 @@
 (define (compute f db) (let* 
   ([m (create-inputs f)]
    [gcm (ground (inputs-rules m) db)]
-   [aug-gcm (embed gcm)]
    [T (c-query-treatment (first (inputs-queries m)))]
    [Y (c-query-outcome (first (inputs-queries m)))]
    [Z (detect (inputs-rules m) T Y)]
    ; TODO enable support for more than 1 query
-   [table (construct aug-gcm (first (inputs-queries m)) Z)]
+   [almost-table (construct gcm (first (inputs-queries m)) Z)]
+   [table (embed almost-table)]
    [ate (estimate table)]) 
   ate))
 
