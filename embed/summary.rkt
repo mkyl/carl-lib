@@ -36,8 +36,8 @@
 		   [t (second row)]
 		   [covars (third row)]
 		   [groups (group-by atom-attr covars)]
-		   [values (map (lambda (g) (map atom-value g)) groups)]
-		   ; TODO ensure sorted
+		   [sorted (sort groups symbol<? #:key (compose atom-attr first))]
+		   [values (map (lambda (g) (map atom-value g)) sorted)]
 		   [processed (map mean values)])
 		(list y t processed)))
 
