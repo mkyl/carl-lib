@@ -1,0 +1,5 @@
+Score[S] <- Prestige[A] where contributed[A, S]
+Score[S] <- Quality[S]
+Prestige[A] <- Qualification[A]
+Quality[S] <- Qualification[A] where contributed[A, S]
+Score[S] <- Prestige[A] where contributed[A, S]?

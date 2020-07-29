@@ -10,6 +10,9 @@
     (let* ([g (rules-to-dag model)]
            [c (candidate-stream g)]
            [bc (sequence-filter (λ (x) (backdoor-criterion g t y x)) c)]
+           ; TODO filter properly
+           [bc (sequence-filter (λ (x) 
+            (or (empty? x) (not (eq? (predicate-name (first x)) 'Qualification)))) bc)]
            [Z (sequence-argmin length bc)])           
 	    Z))
 

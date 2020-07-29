@@ -1,9 +1,9 @@
 #lang errortrace racket/base
 
 (require rackunit
-	racket/lazy-require
-  racket/list
-	db)
+	       racket/lazy-require
+         racket/list
+	       db)
 
 ; lazy-require used to avoid cycle between main.rkt <-> integration.rkt
 (lazy-require [carl-lib (compute)])
@@ -27,7 +27,16 @@
                [sqlite (sqlite3-connect #:database 'memory)]
                [_ (populate-confounding sqlite target-ate)]
                [ate (compute model sqlite)])
-            (check-= target-ate ate ε)))))
+            (check-= target-ate ate ε)))
+     (test-case
+          "end-to-end test with OpenReview data"
+          (let* ([model (open-input-file "test/openreview.carl")]
+                 [sqlite (sqlite3-connect #:database "test/openreview.sqlite3")]
+                 [_ (prep-views sqlite)]
+                 [ate (compute model sqlite)])
+              ; ATE from db below
+              (displayln ate)
+              (check-= ate 0.0642 0.02)))))
 
 (provide integration-tests)
 
@@ -66,4 +75,20 @@
                     (string-append "INSERT into " name
                      " values (?, ?)")
                     k v)))))
+
+(define (prep-views dbc)
+    (query-exec dbc "DROP TABLE IF EXISTS Prestige")
+    (query-exec dbc "DROP TABLE IF EXISTS Qualification")
+    (query-exec dbc "DROP TABLE IF EXISTS Quality")
+    (query-exec dbc "DROP TABLE IF EXISTS Score")
+    (query-exec dbc "DELETE FROM Papers WHERE pid IN (SELECT pid FROM Papers,Conferences WHERE submitted_to=cid AND double_blind = 1)")
+    (query-exec dbc "CREATE TABLE Prestige(aid INTEGER PRIMARY KEY, rank BOOL)")
+    (query-exec dbc "INSERT INTO Prestige SELECT aid, (world_rank < 40) FROM authors")
+    (query-exec dbc "CREATE TABLE Qualification(aid INTEGER PRIMARY KEY, qual BOOL)")
+    (query-exec dbc "INSERT INTO Qualification SELECT aid, (h_index > 8) FROM authors")
+    (query-exec dbc "CREATE TABLE Quality(aid INTEGER PRIMARY KEY, qual BOOL)")
+    (query-exec dbc "INSERT INTO Quality SELECT aid, null FROM authors")
+    (query-exec dbc "CREATE TABLE Score(pid STRING PRIMARY KEY, score REAL)")
+    (query-exec dbc "INSERT INTO Score SELECT pid, AVG(rating) FROM papers, reviews WHERE review_of=pid GROUP BY pid"))
+
     
