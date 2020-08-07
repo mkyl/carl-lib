@@ -66,15 +66,21 @@
 ; create map of (predicate, symbol) : db column name 
 (define (symbol-lookup dbc preds)
     (let* ([tables (list-tables dbc)]
-           [cols (map (lambda (t) (read-cols dbc t)) tables)]
-           [assoc (map cons tables cols)]
-           [tab->cols (make-immutable-hash assoc)])
-        (make-immutable-hash 
-            (for*/list ([p preds]
-                        [vs (map cons (predicate-vars p)
-                                      (hash-ref tab->cols
-                                        (symbol->string (predicate-name p))))])
-                (cons (cons (predicate-name p) (car vs)) (cdr vs))))))
+           [cols (apply append (map (lambda (t) (read-cols dbc t)) tables))]
+           [names (map table-name cols)]
+           [dupl (check-duplicates names)])
+        (if (not (equal? dupl #f))
+            (raise-arguments-error 'estimate 
+                                   "database contains two tables that share an attribute name. Please rename one."
+                                   "attribute" dupl)
+            (let* ([assocs (map (λ(t) (cons (table-name t) (table-vars t))) cols)]
+                   [tab->cols (make-immutable-hash assocs)])
+                (make-immutable-hash 
+                    (for*/list ([p preds]
+                                [vs (map cons (predicate-vars p)
+                                              (hash-ref tab->cols
+                                                (symbol->string (predicate-name p))))])
+                        (cons (cons (predicate-name p) (car vs)) (cdr vs))))))))
 
 ; convert an edge in the graph of tables into a condition
 (define (edge->check lookup g edge)
@@ -133,10 +139,13 @@
 (define (read-cols dbc t-name)
     ; TODO why does this not work? `(query-rows dbc "PRAGMA table_info(?)" table)`
     ; TODO better approach: https://en.wikipedia.org/wiki/Information_schema
-    (let* ([rs (query-rows dbc (string-append "PRAGMA table_info(" t-name ")"))]
-           [ks (filter isprimary rs)]
-           [vars (map get-name ks)])
-        vars))
+    (let* ([rows (query-rows dbc (string-append "PRAGMA table_info(" t-name ")"))]
+           [keys (filter isprimary rows)]
+           [cols (filter (λ(x) (not (isprimary x))) rows)]
+           [keys-names (map get-name keys)]
+           [cols-names (map get-name cols)]
+           [r (map (λ(c) (table c keys)) cols-names)])
+        r))
 
 ; is this column a primary key? non-zero is pk
 (define (isprimary c)
