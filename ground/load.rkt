@@ -40,14 +40,16 @@
            [attrs (string-join as ", ")]
            [tables (string-join ts ", ")]
            [conds (string-join cs " AND ")])
-        (string-append "SELECT DISTINCT " attrs " FROM " tables " WHERE " conds)))
+        (if (empty? cs)
+            (string-append "SELECT DISTINCT " attrs " FROM " tables)
+            (string-append "SELECT DISTINCT " attrs " FROM " tables " WHERE " conds))))
 
 ; build the conditions for the WHERE clause
 (define (build-conds dbc preds)
     (let* ([g (datalog-graph preds)]
            [l (symbol-lookup dbc preds)]
            [es (get-edges g)]
-           [cs (map (lambda (e) (edge->check l g e)) es)]
+           [cs (filter-map (lambda (e) (edge->check l g e)) es)]
            [conds (map check->string cs)])
         conds))
 
@@ -65,38 +67,49 @@
 
 ; create map of (predicate, symbol) : db column name 
 (define (symbol-lookup dbc preds)
-    (let* ([tables (list-tables dbc)]
+    (let* ([tables (map string->symbol (list-tables dbc))]
            [cols (map (lambda (t) (read-cols dbc t)) tables)]
            [assoc (map cons tables cols)]
-           [tab->cols (make-immutable-hash assoc)])
+           [tab->cols (make-immutable-hash assoc)]
+           [pred-names (remove-duplicates (map predicate-name preds))]
+           [missing (set-subtract pred-names tables)]
+           [_ (if (not (set-empty? missing))
+                  (displayln (list "WARNING: assuming predicates are unobserved:"
+                                   missing))
+                  '())]
+           [preds-obs (filter (λ(x) (member (predicate-name x) tables)) preds)])
         (make-immutable-hash 
-            (for*/list ([p preds]
+            (for*/list ([p preds-obs]
                         [vs (map cons (predicate-vars p)
-                                      (hash-ref tab->cols
-                                        (symbol->string (predicate-name p))))])
+                                      (hash-ref tab->cols (predicate-name p)))])
                 (cons (cons (predicate-name p) (car vs)) (cdr vs))))))
 
 ; convert an edge in the graph of tables into a condition
 (define (edge->check lookup g edge)
     (let* ([t1 (car edge)]
            [t2 (second edge)]
-           [s (edge-weight g t1 t2)])
-        (check
-            t1
-            (hash-ref lookup (cons t1 s))
-            t2
-            (hash-ref lookup (cons t2 s)))))
+           [s (edge-weight g t1 t2)]
+           [k1 (cons t1 s)]
+           [k2 (cons t2 s)])
+        (if (and (hash-has-key? lookup k1) (hash-has-key? lookup k2))
+            (check
+                t1
+                (hash-ref lookup k1)
+                t2
+                (hash-ref lookup k2))
+            #f)))
 
 ; convert the WHERE condition struct into a string like "T1.x = T2.y"
 (define (check->string c)
-    (string-append 
-        (symbol->string (check-tab1 c)) "." (check-col1 c)
+    (string-append
+        (symbol->string (check-tab1 c)) "." (symbol->string (check-col1 c))
         " = " 
-        (symbol->string (check-tab2 c)) "." (check-col2 c)))
+        (symbol->string (check-tab2 c)) "." (symbol->string (check-col2 c))))
 
 ; given an sql query, return the edges in the ground graph that
 ; the query corresponds to
 (define (query->edges dbc q pred1 pred2)
+    (displayln q)
     (let* ([qrs (query-rows dbc q)]
            [attr1 (predicate-name pred1)]
            [attr2 (predicate-name pred2)]
@@ -133,9 +146,10 @@
 (define (read-cols dbc t-name)
     ; TODO why does this not work? `(query-rows dbc "PRAGMA table_info(?)" table)`
     ; TODO better approach: https://en.wikipedia.org/wiki/Information_schema
-    (let* ([rs (query-rows dbc (string-append "PRAGMA table_info(" t-name ")"))]
+    (let* ([rs (query-rows dbc (string-append "PRAGMA table_info("
+                                              (symbol->string t-name) ")"))]
            [ks (filter isprimary rs)]
-           [vars (map get-name ks)])
+           [vars (map (compose1 string->symbol get-name) ks)])
         vars))
 
 ; is this column a primary key? non-zero is pk
