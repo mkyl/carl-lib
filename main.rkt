@@ -38,7 +38,8 @@
    [gcm (ground (inputs-rules m) db)]
    [T (c-query-treatment (first (inputs-queries m)))]
    [Y (c-query-outcome (first (inputs-queries m)))]
-   [Z (detect (inputs-rules m) T Y)]
+   [missing (get-missing db (inputs-rules m))]
+   [Z (detect (inputs-rules m) missing T Y)]
    ; TODO enable support for more than 1 query
    [almost-table (construct gcm (first (inputs-queries m)) Z)]
    [table (embed almost-table)]

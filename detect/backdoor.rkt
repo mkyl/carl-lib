@@ -6,13 +6,12 @@
         carl-lib/lang
         graph)
 
-(define (detect model t y)
+(define (detect model missing t y)
     (let* ([g (rules-to-dag model)]
            [c (candidate-stream g)]
            [bc (sequence-filter (λ (x) (backdoor-criterion g t y x)) c)]
-           ; TODO filter properly
-           [bc (sequence-filter (λ (x) 
-            (or (empty? x) (not (eq? (predicate-name (first x)) 'Qualification)))) bc)]
+           ; cannot adjust for missing covariates
+           [bc (sequence-filter (λ (x) (empty? (set-intersect x missing))) bc)]
            [Z (sequence-argmin length bc)])           
 	    Z))
 

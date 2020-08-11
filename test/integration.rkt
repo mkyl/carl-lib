@@ -85,9 +85,7 @@
     (query-exec dbc "CREATE TABLE Prestige(aid INTEGER PRIMARY KEY, rank BOOL)")
     (query-exec dbc "INSERT INTO Prestige SELECT aid, (world_rank < 40) FROM authors")
     (query-exec dbc "CREATE TABLE Qualification(aid INTEGER PRIMARY KEY, qual BOOL)")
-    (query-exec dbc "INSERT INTO Qualification SELECT aid, (h_index > 8) FROM authors")
-    (query-exec dbc "CREATE TABLE Quality(aid INTEGER PRIMARY KEY, qual BOOL)")
-    (query-exec dbc "INSERT INTO Quality SELECT aid, null FROM authors")
+    (query-exec dbc "INSERT INTO Qualification SELECT aid, (h_index > 8 AND NOT h_index IS NULL) FROM authors")
     (query-exec dbc "CREATE TABLE Score(pid STRING PRIMARY KEY, score REAL)")
     (query-exec dbc "INSERT INTO Score SELECT pid, AVG(rating) FROM papers, reviews WHERE review_of=pid GROUP BY pid"))
 

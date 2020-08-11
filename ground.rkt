@@ -14,3 +14,5 @@
 
 (provide (contract-out
     [struct atom ((unit list?) (attr symbol?) (value any/c))]))
+
+(provide get-missing)

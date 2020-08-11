@@ -19,6 +19,7 @@
         g))
 
 (provide ground)
+(provide get-missing)
 
 (struct table (name vars))
 (struct node (unit name value))
@@ -32,10 +33,23 @@
     (let* ([h (rule-head r)]
            [b (rule-body r)]
            [w (rule-where r)]
-           [all (cons h (cons b w))]
-           [as (list (string-append (symbol->string (predicate-name h)) ".*")
-                     (string-append (symbol->string (predicate-name b)) ".*"))]
-           [ts (flatten (map (compose1 symbol->string predicate-name) all))]
+           [all (flatten (list h b w))]
+           [h-name (predicate-name (rule-head r))]
+           [b-name (predicate-name (rule-body r))]
+           [tables (map string->symbol (list-tables dbc))]
+           [all-obs (filter (λ(t) (member (predicate-name t) tables)) all)]
+           ; if one of the two tables is unobserved, use the PKs from the observed
+           ; table and `null` for the values
+           [t1 (if (member h-name tables)
+                   (list (string-append (symbol->string h-name) ".*"))
+                   (append (map (compose1 (λ(s) (string-append (symbol->string b-name) "." s))
+                                      symbol->string) (read-cols dbc b-name)) (list "null")))]
+           [t2 (if (member b-name tables)
+                   (list (string-append (symbol->string b-name) ".*"))
+                   (append (map (compose1 (λ(s) (string-append (symbol->string h-name) "." s))
+                                      symbol->string) (read-cols dbc h-name)) (list "null")))]
+           [as (append t1 t2)]
+           [ts (flatten (map (compose1 symbol->string predicate-name) all-obs))]
            [cs (build-conds dbc all)]
            [attrs (string-join as ", ")]
            [tables (string-join ts ", ")]
@@ -64,6 +78,15 @@
                             (map (lambda (v) (list v (car p) (second p))) vs))
                                 cs-preds is))])
       (weighted-graph/directed edges)))
+
+(define (get-missing dbc preds)
+    (let* ([h (map rule-head preds)]
+           [b (map rule-body preds)]
+           [w (map rule-where preds)]
+           [all (remove-duplicates (flatten (append h b w)))]
+           [tables (map string->symbol (list-tables dbc))]
+           [missing (filter (λ(x) (not (member (predicate-name x) tables))) all)])
+        missing))
 
 ; create map of (predicate, symbol) : db column name 
 (define (symbol-lookup dbc preds)
@@ -109,7 +132,6 @@
 ; given an sql query, return the edges in the ground graph that
 ; the query corresponds to
 (define (query->edges dbc q pred1 pred2)
-    (displayln q)
     (let* ([qrs (query-rows dbc q)]
            [attr1 (predicate-name pred1)]
            [attr2 (predicate-name pred2)]
