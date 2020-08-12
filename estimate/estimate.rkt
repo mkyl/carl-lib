@@ -4,9 +4,13 @@
 	racket/list
 	math/matrix
 	math/array
-	math/statistics)
+	math/statistics
+    racket/string
+    racket/file
+    racket/system
+    csv-writing)
 
-(define (estimate unit-table)
+(define (estimate-exact-match unit-table)
 	(let*
 		([data (matrix->list* unit-table)]
 		 [groups (stratify data)]
@@ -32,4 +36,19 @@
 		 [Y_UT (mean (map car untreated))])
 	  (- Y_T Y_UT)))
 
+(define (estimate-bart unit-table)
+    (let ([in (make-temporary-file "unit-table-~a.csv")]
+          [out (make-temporary-file "estimate-~a.png")])
+        (write-csv unit-table in)
+        (system* (find-executable-path "Rscript") "estimate.R" in out)
+        (process (string-append "open " (path->string out)))
+        0))
+
+(define (write-csv table file)
+    (call-with-output-file file
+        (lambda (out)
+            (display-table (array->list* table) out))
+        #:exists 'replace))
+
+(define estimate estimate-bart)
 (provide estimate)
