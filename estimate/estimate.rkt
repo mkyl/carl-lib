@@ -8,7 +8,10 @@
     racket/string
     racket/file
     racket/system
+    racket/runtime-path
     csv-writing)
+
+(define-runtime-path bart "estimate.R")
 
 (define (estimate-exact-match unit-table)
 	(let*
@@ -40,7 +43,7 @@
     (let ([in (make-temporary-file "unit-table-~a.csv")]
           [out (make-temporary-file "estimate-~a.png")])
         (write-csv unit-table in)
-        (system* (find-executable-path "Rscript") "estimate.R" in out)
+        (system* (find-executable-path "Rscript") bart in out)
         (process (string-append "open " (path->string out)))
         0))
 
