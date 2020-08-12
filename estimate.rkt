@@ -4,8 +4,9 @@
 		 scribble/srcdoc
 		 (for-doc racket/base scribble/manual)
 		 math/matrix
+         2htdp/image
 		 "estimate/estimate.rkt")
 
-(provide (proc-doc/names estimate (matrix? . -> . real?) (unit-table) 
+(provide (proc-doc/names estimate (matrix? . -> . image?) (unit-table) 
 	("Estimate the average treatment effect (ATE) given a unit table.")))
 

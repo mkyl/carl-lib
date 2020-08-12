@@ -9,6 +9,7 @@
     racket/file
     racket/system
     racket/runtime-path
+    2htdp/image
     csv-writing)
 
 (define-runtime-path bart "estimate.R")
@@ -45,7 +46,7 @@
         (write-csv unit-table in)
         (system* (find-executable-path "Rscript") bart in out)
         (process (string-append "open " (path->string out)))
-        0))
+        (bitmap/file out)))
 
 (define (write-csv table file)
     (call-with-output-file file
