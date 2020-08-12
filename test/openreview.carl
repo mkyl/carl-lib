@@ -2,27 +2,3 @@ Score[S] <- Prestige[A] where contributed[A, S]
 Score[S] <- Quality[S]
 Prestige[A] <- Qualification[A]
 Quality[S] <- Qualification[A] where contributed[A, S]
-Score[S] <- Prestige[A] where contributed[A, S]?
-
-
-
-create Prestige[aid], Qualification[aid] as authors(aid, -, -, -, -, -, -)
-create Score[pid]=s, Quality[pid] as paper(pid, -, s, -, -)
-
-Paper.score[S] <- Auhors.Prestige[A] where contributed[A, S]
-Paper.score[S] <- Paper.quality[S]
-
-
-T(aid,b,c,d,e,f)
-
-T.A(1), T.B(1), ..
-T.A(2), T.B(2), ..
-
-
-; new Carl:
-
-Paper.score[S] <- Prestige[A] where Contributed(A, S)
-Paper.score[S] <- Paper.quality[S]
-Author.world_rank[A] <- Author.h_index[A]
-Paper.quality[S] <- Author.h_index[A] where Contributed(A, S)
-Paper.score[S] <- Author.world_rank[A] where Contributed[A, S]?
