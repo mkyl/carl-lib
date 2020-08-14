@@ -6,8 +6,11 @@
         carl-lib/lang
         graph)
 
+(define (causal-path-graph model T Y)
+    (rules-to-dag model #f))
+
 (define (detect model missing t y)
-    (let* ([g (rules-to-dag model)]
+    (let* ([g (rules-to-dag model #t)]
            [c (candidate-stream g)]
            [bc (sequence-filter (λ (x) (backdoor-criterion g t y x)) c)]
            ; cannot adjust for missing covariates
@@ -17,10 +20,14 @@
 
 ; convert the set of rules to a DAG, so that graphical
 ; criterions can be applied to it
-(define (rules-to-dag model)
-    (let* ([rule-to-edge (λ (r) (list (rule-body r) (rule-head r)))]
-           [edges (map rule-to-edge model)])
-        (unweighted-graph/directed edges)))
+(define (rules-to-dag model directed)
+    (define edges
+        (for/list ([r model])
+            ; unusual syntax: edge "weight" goes first
+            (list (rule-where r) (rule-body r) (rule-head r))))
+    (if directed
+        (weighted-graph/directed edges)
+        (weighted-graph/undirected edges)))
 
 ; stream of the powerset of the nodes of g
 (define (candidate-stream g)
@@ -102,4 +109,5 @@
             [else (error "not possible")])))
 
 (provide detect
-    backdoor-criterion)
+    backdoor-criterion
+    causal-path-graph)

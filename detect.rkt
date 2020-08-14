@@ -8,6 +8,8 @@
 		 carl-lib/lang
 		 "detect/backdoor.rkt")
 
+(provide causal-path-graph)
+
 (provide (proc-doc/names detect ((listof rule?) (listof predicate?) any/c any/c
                                  . -> . (or/c list? #f)) (model missing T Y) 
 	("Return a minimal set of sufficient covariates for adjustment of T on Y.

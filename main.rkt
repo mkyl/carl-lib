@@ -31,20 +31,21 @@
          carl-lib/detect
          carl-lib/unit-table
          carl-lib/estimate
-         racket/list)
+         racket/list
+         graph)
 (provide compute)
 (define (compute f db) (let* 
   ([m (create-inputs f)]
-   [gcm (ground (inputs-rules m) db)]
    [T (c-query-treatment (first (inputs-queries m)))]
    [Y (c-query-outcome (first (inputs-queries m)))]
+   [G (causal-path-graph (inputs-rules m) T Y)]
    [missing (get-missing db (inputs-rules m))]
    [Z (detect (inputs-rules m) missing T Y)]
    ; TODO enable support for more than 1 query
-   [almost-table (construct gcm (first (inputs-queries m)) Z)]
-   [table (embed almost-table)]
-   [ate (estimate table)]) 
-  ate))
+   [table (ground-direct db T Y Z G null)]
+  ; [ate (estimate table)]) 
+  ;ate))
+  )5))
 
 (module+ main
   ;; (Optional) main submodule. Put code here if you need it to be executed when
