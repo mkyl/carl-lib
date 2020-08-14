@@ -45,12 +45,13 @@
           [out (make-temporary-file "estimate-~a.png")])
         (write-csv unit-table in)
         (system* (find-executable-path "Rscript") bart in out)
+        (process (string-append "open " (path->string out)))
         (bitmap/file out)))
 
 (define (write-csv table file)
     (call-with-output-file file
         (lambda (out)
-            (display-table (array->list* table) out))
+            (display-table table out))
         #:exists 'replace))
 
 (define estimate estimate-bart)
