@@ -95,7 +95,7 @@
             (for/list ([name CTE-names])
                 (string-append (symbol->string name) ".V")))
     (define columns
-        (for/list ([c (append (list t-val y-val) CTE-vals)])
+        (for/list ([c (append (list y-val t-val) CTE-vals)])
             (string-append "AVG(" c ")")))
 
     (string-append (string-join CTEs ", " #:before-first "WITH ")

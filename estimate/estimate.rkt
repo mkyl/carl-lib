@@ -45,7 +45,7 @@
           [out (make-temporary-file "estimate-~a.png")])
         (write-csv unit-table in)
         (system* (find-executable-path "Rscript") bart in out)
-        (process (string-append "open " (path->string out)))
+       ; (process (string-append "open " (path->string out)))
         (bitmap/file out)))
 
 (define (write-csv table file)
