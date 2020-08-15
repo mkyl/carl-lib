@@ -1,0 +1,17 @@
+Bill[P] <- Illness_Severity[P]
+Bill[P] <- Admission_Source[P]
+Bill[P] <- Procedure_Invasiveness[P]
+Bill[P] <- Mortality_Risk[P]
+Bill[P] <- Is_Chronic_Illness[P]
+Bill[P] <- Private_Ownership[H] where Admitted[P, H]
+Bill[P] <- Urban_or_Rural[H] where Admitted[P, H]
+
+Admitted_to_Large[P] <- Illness_Severity[P]
+Admitted_to_Large[P] <- Admission_Source[P]
+Admitted_to_Large[P] <- Procedure_Invasiveness[P]
+Admitted_to_Large[P] <- Mortality_Risk[P]
+Admitted_to_Large[P] <- Is_Chronic_Illness[P]
+Admitted_to_Large[P] <- Private_Ownership[H] where Admitted[P, H]
+Admitted_to_Large[P] <- Urban_or_Rural[H] where Admitted[P, H]
+
+Bill[P] <- Admitted_to_Large[H] where Admitted[P, H]?
