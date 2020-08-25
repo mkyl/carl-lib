@@ -7,6 +7,6 @@
          2htdp/image
 		 "estimate/estimate.rkt")
 
-(provide (proc-doc/names estimate (any/c . -> . image?) (unit-table) 
+(provide (proc-doc/names estimate (any/c any/c . -> . list?) (unit-table fast) 
 	("Estimate the average treatment effect (ATE) given a unit table.")))
 

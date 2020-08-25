@@ -97,11 +97,19 @@
     (define columns
         (for/list ([c (append (list y-val t-val) CTE-vals)])
             (string-append "AVG(" c ")")))
+    (define with-clause
+        (if (empty? CTEs)
+            ""
+            (string-append " WITH " (string-join CTEs ", " ))))
+    (define cond-clause
+        (if (empty? conds)
+            ""
+            (string-append " WHERE " (string-join conds " AND "))))
 
-    (string-append (string-join CTEs ", " #:before-first "WITH ")
+    (string-append with-clause
         " SELECT " (string-join columns ", ")
         " FROM " (string-join tables ", ")
-        " WHERE " (string-join conds " AND ")
+        cond-clause
         " GROUP BY " (string-join y-keys ", ")))
 
 (define (ground-direct db t y C Z G)
@@ -123,11 +131,58 @@
     (query-rows db Q))
 
 (define (tab-val db t-name)
+    (define system (dbsystem-name (connection-dbsystem db)))
+    (cond 
+        [(equal? system 'sqlite3) (tab-val-sqlite db t-name)]
+        [(equal? system 'postgresql) (tab-val-postgres db t-name)]
+        [else (error "The following DBMS is not supported:" system)]))
+
+(define (tab-val-sqlite db t-name)
     (let* ([rs (query-rows db (string-append "PRAGMA table_info("
                                               (symbol->string t-name) ")"))]
            [ks (filter (λ(r) (not (isprimary r))) rs)]
            [vars (map get-name ks)])
         (string-append (symbol->string t-name) "." (car vars))))
+
+(define psql-primary-q #<<here-string-delimiter
+    SELECT
+           kcu.column_name as key_column
+    FROM information_schema.table_constraints tco
+    JOIN information_schema.key_column_usage kcu 
+         on kcu.constraint_name = tco.constraint_name
+         and kcu.constraint_schema = tco.constraint_schema
+         and kcu.constraint_name = tco.constraint_name
+    WHERE tco.constraint_type = 'PRIMARY KEY' and kcu.table_name = $1
+here-string-delimiter
+)
+
+(define psql-all-columns
+    "SELECT column_name FROM information_schema.columns WHERE table_name=$1")
+
+(define (tab-val-postgres db t-name)
+    (define t-name-lower
+        (string-downcase (symbol->string t-name)))
+    (define all-cols
+        (query-list db psql-all-columns t-name-lower))
+    (define primary-cols
+        (query-list db psql-primary-q t-name-lower))
+    (define vars
+        (set-subtract all-cols primary-cols))
+    (string-append (symbol->string t-name) "." (car vars)))
+
+(define (read-cols db t-name)
+    (define system (dbsystem-name (connection-dbsystem db)))
+    (cond 
+        [(equal? system 'sqlite3) (read-cols-sqlite db t-name)]
+        [(equal? system 'postgresql) (read-cols-postgres db t-name)]
+        [else (error "The following DBMS is not supported:" system)]))
+
+(define (read-cols-postgres db t-name)
+    (define t-name-lower
+        (string-downcase (symbol->string t-name)))
+    (define primary-cols
+        (query-list db psql-primary-q t-name-lower))
+    (map string->symbol primary-cols))
 
 ; copied
 ; build the conditions for the WHERE clause
@@ -213,7 +268,7 @@
 
 ; copied
 ; return a list of the name of the primary keys of a table
-(define (read-cols dbc t-name)
+(define (read-cols-sqlite dbc t-name)
     ; TODO why does this not work? `(query-rows dbc "PRAGMA table_info(?)" table)`
     ; TODO better approach: https://en.wikipedia.org/wiki/Information_schema
     (let* ([rs (query-rows dbc (string-append "PRAGMA table_info("

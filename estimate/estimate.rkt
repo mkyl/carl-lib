@@ -7,12 +7,14 @@
 	math/statistics
     racket/string
     racket/file
+    racket/port
     racket/system
     racket/runtime-path
     2htdp/image
     csv-writing)
 
 (define-runtime-path bart "estimate.R")
+(define-runtime-path cluster "estimate-fast.R")
 
 (define (estimate-exact-match unit-table)
 	(let*
@@ -40,13 +42,17 @@
 		 [Y_UT (mean (map car untreated))])
 	  (- Y_T Y_UT)))
 
-(define (estimate-bart unit-table)
+(define (estimate-better unit-table fast)
     (let ([in (make-temporary-file "unit-table-~a.csv")]
-          [out (make-temporary-file "estimate-~a.png")])
+          [out (make-temporary-file "estimate-~a.png")]
+          [out-summary (make-temporary-file "summary-~a.txt")]
+          [estimator (if fast cluster bart)])
+        (displayln in)
+        (displayln out)
         (write-csv unit-table in)
-        (system* (find-executable-path "Rscript") bart in out)
+        (system* (find-executable-path "Rscript") estimator in out out-summary)
        ; (process (string-append "open " (path->string out)))
-        (bitmap/file out)))
+        (list (bitmap/file out) (file->lines out-summary))))
 
 (define (write-csv table file)
     (call-with-output-file file
@@ -54,5 +60,5 @@
             (display-table table out))
         #:exists 'replace))
 
-(define estimate estimate-bart)
+(define estimate estimate-better)
 (provide estimate)
