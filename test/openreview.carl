@@ -5,3 +5,4 @@ Accepted[S] <- Quality[S]
 Prestige[A] <- Qualification[A]
 Prestige[A] <- Experience[A]
 Quality[S] <- Qualification[A] where contributed[A, S]
+Accepted[S] <- Prestige[A] where contributed[A, S]?

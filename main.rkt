@@ -32,11 +32,10 @@
          carl-lib/unit-table
          carl-lib/estimate
          racket/list
-         graph
-         graphviz
-         pict)
+         math/matrix
+         graph)
 (provide compute)
-(define (compute f db fast) (let* 
+(define (compute f db) (let* 
   ([start (current-inexact-milliseconds)]
    [m (create-inputs f)]
    [T (c-query-treatment (first (inputs-queries m)))]
@@ -45,27 +44,16 @@
    [G (causal-path-graph (inputs-rules m) T Y)]
    [missing (get-missing db (inputs-rules m))]
    [Z (detect (inputs-rules m) missing T Y)]
-   [_ (display "adjusting for: ")]
-   [_ (displayln Z)]
    ; TODO enable support for more than 1 query
    [table (ground-direct db T Y C Z G)]
    [table (map vector->list table)]
-   [stop (current-inexact-milliseconds)]
-   [_ (display "time elapsed: ")]
-   [_ (display (- stop start))]
-   [_ (displayln " milliseconds ")]
    [_ (for ([v (get-vertices G)]) (rename-vertex! G v (predicate-name v)))]
    [G2 (unweighted-graph/undirected (get-edges G))]
    [colors (cons (cons (predicate-name T) 0.1) (cons (cons (predicate-name Y) 0.5)
              (map (λ(z) (cons (predicate-name z) 0.95)) Z)))]
    [C (make-hash colors)]
-   [viz (graphviz G2 #:colors C)]
-   [ate (estimate table fast)])
-  (flatten (list "Lifted Causal Graph:" 
-    (pict->bitmap (dot->pict viz)) 
-    "[Legend: Treatment=Orange, Outcome=Green, Confounders=Blue]" "." "."
-     "Average Treatment Effect (ATE) estimate:"
-     ate))))
+   [ate (estimate (list*->matrix table))])
+  ate))
 
 (module+ main
   ;; (Optional) main submodule. Put code here if you need it to be executed when

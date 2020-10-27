@@ -34,7 +34,6 @@
                  [sqlite (sqlite3-connect #:database "test/openreview-single-blind.sqlite3")]
                  [ate (compute model sqlite)])
               ; ATE from db below
-              (displayln ate)
               (check-= ate 0.0642 0.02)))))
 
 (provide integration-tests)
