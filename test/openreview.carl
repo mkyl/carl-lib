@@ -1,4 +1,3 @@
-
 Accepted[S] <- Experience[A] where contributed[A, S]
 Accepted[S] <- Prestige[A] where contributed[A, S]
 Accepted[S] <- Quality[S]
