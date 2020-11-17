@@ -6,7 +6,6 @@
     racket/vector
 	db
     graph
-    datalog
 	carl-lib/lang)
 
 (define (ground rules dbc)
