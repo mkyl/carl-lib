@@ -45,7 +45,7 @@
    [missing (get-missing db (inputs-rules m))]
    [Z (detect (inputs-rules m) missing T Y)]
    ; TODO enable support for more than 1 query
-   [table (ground-direct db T Y C Z G)]
+   [table (ground-direct db T Y C Z missing G)]
    [table (map vector->list table)]
    [_ (for ([v (get-vertices G)]) (rename-vertex! G v (predicate-name v)))]
    [G2 (unweighted-graph/undirected (get-edges G))]

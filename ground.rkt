@@ -7,7 +7,6 @@
 		 db
 		 carl-lib/lang
 		 "ground/load.rkt"
-
          racket/list
          racket/set
          racket/string)
@@ -112,10 +111,16 @@
         cond-clause
         " GROUP BY " (string-join y-keys ", ")))
 
-(define (ground-direct db t y C Z G)
+(define (ground-direct db t y C Z missing G)
+    ; can only join observed tables
+    (define G_obs
+        (graph-copy G))
+    (for ([m missing])
+        (remove-vertex! G_obs m))
+    ; find the needed joins (they correspond to paths)
     (define P
         (for/list ([z Z])
-            (fewest-vertices-path G z y)))
+            (fewest-vertices-path G_obs z y)))
     ; collect parts to build queries
     (define ZQ-parts
         (for/list ([p P])
