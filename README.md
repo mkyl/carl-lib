@@ -4,23 +4,6 @@ carl-lib
 
 Causal Relational Learning library, implementation of the [corresponding paper](https://arxiv.org/abs/2004.03644).
 
-**This software is currently in pre-alpha.**
+Watch the [![Preview of video demo](demo-preview.png)](https://www.youtube.com/watch?v=NuXw_okuWAw).
 
-Collection structure is as follows:
-
-```
- | carl-lib/
-  \
-  | general:
-  |- test/: unit and integration tests 
-  |- scribblings/: documentation source
-  | 
-  | submodules:
-  |- lang/: parsing language
-  |- grounding/: creating ground causal model (GCM) from database instance
-  |- embedding/: augmentation of GCM using embeddings
-  |- detection/: covariate detection
-  |- unit-table/: constructing the unit table
-  |- estmation/: estimating causal quantities
-  .
-```
+**This software is currently in beta.**
