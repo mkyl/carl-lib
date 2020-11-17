@@ -31,18 +31,28 @@
          carl-lib/detect
          carl-lib/unit-table
          carl-lib/estimate
-         racket/list)
+         racket/list
+         math/matrix
+         graph)
 (provide compute)
 (define (compute f db) (let* 
-  ([m (create-inputs f)]
-   [gcm (ground (inputs-rules m) db)]
+  ([start (current-inexact-milliseconds)]
+   [m (create-inputs f)]
    [T (c-query-treatment (first (inputs-queries m)))]
    [Y (c-query-outcome (first (inputs-queries m)))]
-   [Z (detect (inputs-rules m) T Y)]
+   [C (c-query-where (first (inputs-queries m)))]
+   [G (causal-path-graph (inputs-rules m) T Y)]
+   [missing (get-missing db (inputs-rules m))]
+   [Z (detect (inputs-rules m) missing T Y)]
    ; TODO enable support for more than 1 query
-   [almost-table (construct gcm (first (inputs-queries m)) Z)]
-   [table (embed almost-table)]
-   [ate (estimate table)]) 
+   [table (ground-direct db T Y C Z missing G)]
+   [table (map vector->list table)]
+   [_ (for ([v (get-vertices G)]) (rename-vertex! G v (predicate-name v)))]
+   [G2 (unweighted-graph/undirected (get-edges G))]
+   [colors (cons (cons (predicate-name T) 0.1) (cons (cons (predicate-name Y) 0.5)
+             (map (λ(z) (cons (predicate-name z) 0.95)) Z)))]
+   [C (make-hash colors)]
+   [ate (estimate (list*->matrix table))])
   ate))
 
 (module+ main
